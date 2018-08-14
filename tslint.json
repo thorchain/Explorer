@@ -6,5 +6,10 @@
       "node_modules/**/*.ts",
       "coverage/lcov-report/*.js"
     ]
+  },
+  "rules": {
+    "semicolon": [true, "never"],
+    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
+    "quotemark": [true, "single", "jsx-double"]
   }
 }
