@@ -107,7 +107,7 @@ export const BlockchainStore = types.model({
   }),
 }))
 .actions(self => ({
-  fetchAll: flow(function* fetchAll() {
+  afterCreate: flow(function* fetchAll() {
     yield Promise.all([
       self.fetchGenesis(),
       self.fetchStatus(),
@@ -117,6 +117,9 @@ export const BlockchainStore = types.model({
     yield self.fetchLast100Blocks()
   }),
 }))
+// .actions(self => ({
+//   afterCreate()
+// }))
 .views(self => ({
   get transactionsPerSecondLast100 () {
     const txsLast100 = sum(self.recentBlocks.map(block => block.numTxs))

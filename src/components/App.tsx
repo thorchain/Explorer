@@ -1,43 +1,101 @@
 import { observer } from 'mobx-react'
+import * as moment from 'moment'
 import * as React from 'react'
+import { formatNum } from '../helpers/formatNum'
+import { formatPercent } from '../helpers/formatPercent'
 import { BlockchainStore } from '../models/blockchain'
 import './App.css'
+import { AppTitle } from './AppTitle'
+import { Col } from './Col'
+import { Container } from './Container'
+import { Header } from './Header'
+import { Label } from './Label'
+import { Pane } from './Pane'
+import { Title } from './Title'
+import { TitleLabel } from './TitleLabel'
 
 @observer
 class App extends React.Component<{ store: typeof BlockchainStore.Type }, object> {
-  public componentWillMount() {
-    this.props.store.fetchAll()
-  }
-
   public render() {
     const { store } = this.props
 
+    console.log(store.blockHeight !== null ? formatNum(store.blockHeight) : null) // tslint:disable-line:no-console
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <h1 className="App-title">THOR!</h1>
-        </header>
+      <Container>
+        <Col>
+          <AppTitle>THORChain</AppTitle>
 
-        <h2>Software</h2>
-        <p>Testnet: {store.chainId}</p>
+          <Pane>
+            <Header>Software</Header>
+            <TitleLabel>
+              <Title>Testnet</Title>
+              <Label>{store.chainId !== null ? store.chainId.toUpperCase() : 'TODO'}</Label>
+            </TitleLabel>
+          </Pane>
 
-        <h2>Validators</h2>
-        <p>Validators: {store.validatorCount}</p>
-        <p>Total Staked: {store.totalStaked}</p>
-        <p>Inflation: {store.inflation}</p>
+          <Pane>
+            <Header>Network</Header>
 
-        <h2>Validators</h2>
-        <p>Transaction Time: {store.transactionTimeLast100}</p>
+            <TitleLabel>
+              <Title>Block Height</Title>
+              <Label>{store.blockHeight !== null ? formatNum(store.blockHeight) : 'TODO'}</Label>
+            </TitleLabel>
+            <TitleLabel>
+              <Title>Time Online</Title>
+              <Label>{store.genesisTime !== null ? moment(store.genesisTime).toNow(true).toUpperCase() : 'TODO'}</Label>
+            </TitleLabel>
+            <TitleLabel>
+              <Title>Block Finality</Title>
+              <Label>
+                {store.blockFinalityLast100 !== null ? formatNum(store.blockFinalityLast100) + 'ms' : 'TODO'}
+              </Label>
+            </TitleLabel>
+            <TitleLabel>
+              <Title>TPS</Title>
+              <Label>
+                {store.transactionsPerSecondLast100 !== null ? formatNum(store.transactionsPerSecondLast100) : 'TODO'}
+              </Label>
+            </TitleLabel>
+            <TitleLabel>
+              <Title>Capacity</Title>
+              <Label>{store.capacity !== null ? formatPercent(store.capacity) : 'TODO'}</Label>
+            </TitleLabel>
+          </Pane>
+        </Col>
 
-        <h2>Network</h2>
-        <p>Block Height: {store.blockHeight}</p>
-        <p>Time Online: {store.genesisTime}</p>
-        <p>Block Finality: {store.blockFinalityLast100}</p>
-        <p>TPS: {store.transactionsPerSecondLast100}</p>
-        <p>Capacity: {store.capacity}</p>
+        <Col>
+          <Pane>
+            <Header>Validators</Header>
 
-        {store.recentBlocks.map(block => <p key={block.time}>{block.time}</p>)}
-      </div>
+            <TitleLabel>
+              <Title>Validators</Title>
+              <Label>{store.validatorCount !== null ? formatNum(store.validatorCount) : 'TODO'}</Label>
+            </TitleLabel>
+            <TitleLabel>
+              <Title>Total Staked</Title>
+              <Label>{store.totalStaked !== null ? formatNum(store.totalStaked, 0, 'millions') + ' ᚱ' : 'TODO'}</Label>
+            </TitleLabel>
+            <TitleLabel>
+              <Title>Inflation</Title>
+              <Label>{store.inflation !== null ? formatPercent(store.inflation) : 'TODO'}</Label>
+            </TitleLabel>
+          </Pane>
+        </Col>
+
+        <Col>
+          <Pane>
+            <Header>Transactions</Header>
+
+            <TitleLabel>
+              <Title>Transaction Time</Title>
+              <Label>
+                {store.transactionTimeLast100 !== null ? formatNum(store.transactionTimeLast100) + 'ms' : 'TODO'}
+              </Label>
+            </TitleLabel>
+          </Pane>
+        </Col>
+      </Container>
     )
   }
 }
