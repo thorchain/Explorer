@@ -6,10 +6,12 @@
     "mobx": "^5.0.3",
     "mobx-react": "^5.2.5",
     "mobx-state-tree": "^3.1.1",
+    "moment": "^2.22.2",
     "mst-middlewares": "^3.1.1",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
-    "react-scripts-ts": "2.17.0"
+    "react-scripts-ts": "2.17.0",
+    "tendermint": "^3.1.11"
   },
   "scripts": {
     "start": "react-scripts-ts start",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
+    "@types/moment": "^2.13.0",
     "@types/node": "^10.5.8",
     "@types/react": "^16.4.9",
     "@types/react-dom": "^16.0.7",

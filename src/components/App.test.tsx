@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { createStore } from '..'
+import { createStore } from '../helpers/createStore'
 import App from './App'
 
 it('renders without crashing', () => {

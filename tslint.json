@@ -10,6 +10,7 @@
   "rules": {
     "semicolon": [true, "never"],
     "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
-    "quotemark": [true, "single", "jsx-double"]
+    "quotemark": [true, "single", "jsx-double"],
+    "max-line-length": [true, 120]
   }
 }
