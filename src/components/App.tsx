@@ -18,8 +18,6 @@ class App extends React.Component<{ store: typeof BlockchainStore.Type }, object
   public render() {
     const { store } = this.props
 
-    console.log(store.blockHeight !== null ? formatNum(store.blockHeight) : null) // tslint:disable-line:no-console
-
     return (
       <Container>
         <Col>
