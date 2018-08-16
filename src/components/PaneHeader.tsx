@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { colors } from '../constants/colors'
 
-export const Header = styled.h2`
+export const PaneHeader = styled.h2`
   font-family: "Exo 2";
   font-weight: 500;
   font-size: 20px;

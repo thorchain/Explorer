@@ -4,13 +4,12 @@ import * as React from 'react'
 import { formatNum } from '../helpers/formatNum'
 import { formatPercent } from '../helpers/formatPercent'
 import { BlockchainStore } from '../models/blockchain'
-import './App.css'
 import { AppTitle } from './AppTitle'
 import { Col } from './Col'
 import { Container } from './Container'
-import { Header } from './Header'
 import { Label } from './Label'
 import { Pane } from './Pane'
+import { PaneHeader } from './PaneHeader'
 import { Title } from './Title'
 import { TitleLabel } from './TitleLabel'
 
@@ -24,10 +23,10 @@ class App extends React.Component<{ store: typeof BlockchainStore.Type }, object
     return (
       <Container>
         <Col>
-          <AppTitle>THORChain</AppTitle>
+          <AppTitle />
 
           <Pane>
-            <Header>Software</Header>
+            <PaneHeader>Software</PaneHeader>
             <TitleLabel>
               <Title>Testnet</Title>
               <Label>{store.chainId !== null ? store.chainId.toUpperCase() : 'TODO'}</Label>
@@ -35,7 +34,7 @@ class App extends React.Component<{ store: typeof BlockchainStore.Type }, object
           </Pane>
 
           <Pane>
-            <Header>Network</Header>
+            <PaneHeader>Network</PaneHeader>
 
             <TitleLabel>
               <Title>Block Height</Title>
@@ -43,7 +42,9 @@ class App extends React.Component<{ store: typeof BlockchainStore.Type }, object
             </TitleLabel>
             <TitleLabel>
               <Title>Time Online</Title>
-              <Label>{store.genesisTime !== null ? moment(store.genesisTime).toNow(true).toUpperCase() : 'TODO'}</Label>
+              <Label>
+                {store.genesisTime !== null ? moment(store.genesisTime).toNow(true).toUpperCase() : 'TODO'}
+              </Label>
             </TitleLabel>
             <TitleLabel>
               <Title>Block Finality</Title>
@@ -66,7 +67,7 @@ class App extends React.Component<{ store: typeof BlockchainStore.Type }, object
 
         <Col>
           <Pane>
-            <Header>Validators</Header>
+            <PaneHeader>Validators</PaneHeader>
 
             <TitleLabel>
               <Title>Validators</Title>
@@ -85,7 +86,7 @@ class App extends React.Component<{ store: typeof BlockchainStore.Type }, object
 
         <Col>
           <Pane>
-            <Header>Transactions</Header>
+            <PaneHeader>Transactions</PaneHeader>
 
             <TitleLabel>
               <Title>Transaction Time</Title>
