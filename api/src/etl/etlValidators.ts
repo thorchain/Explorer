@@ -32,10 +32,5 @@ function transform (validators: IRpcValidator[]): IStoredValidators {
 }
 
 async function load(esService: ElasticSearchService, validators: IStoredValidators) {
-  await esService.client.index({
-    body: validators,
-    id: 'validators',
-    index: 'blockchain',
-    type: 'type',
-  })
+  await esService.client.index({ body: validators, id: 'validators', index: 'blockchain', type: 'type' })
 }

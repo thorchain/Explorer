@@ -17,6 +17,8 @@ export class EtlService {
     await etlStatus(this, this.esService)
     await etlValidators(this, this.esService)
     await etlPastBlocks(this, this.esService)
+
+    // TODO:
     // this.intervals.push(setInterval(() => etlGenesis(this, this.esService), 60e3))
     // this.intervals.push(setInterval(() => etlStatus(this, this.esService), 60e3))
     // this.intervals.push(setInterval(() => etlValidators(this, this.esService), 60e3))

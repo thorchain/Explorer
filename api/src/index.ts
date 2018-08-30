@@ -1,4 +1,5 @@
 import * as express from 'express'
+import { getAllMetrics } from './metrics/getAllMetrics'
 import { ElasticSearchService } from './services/ElasticSearch'
 import { EtlService } from './services/EtlService'
 import { TendermintRpcClientService } from './services/TendermintRpcClientService'
@@ -9,8 +10,8 @@ const tendermintService = new TendermintRpcClientService()
 const etlService = new EtlService(esService, tendermintService)
 etlService.start()
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
+app.get('/metrics', async (req, res) => {
+  res.send(await getAllMetrics(esService))
 })
 
 app.listen(3000, () => {

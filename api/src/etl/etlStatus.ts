@@ -31,10 +31,5 @@ function transform (status: IRpcStatus): IStoredStatus {
 }
 
 async function load(esService: ElasticSearchService, status: IStoredStatus) {
-  await esService.client.index({
-    body: status,
-    id: 'status',
-    index: 'blockchain',
-    type: 'type',
-  })
+  await esService.client.index({ body: status, id: 'status', index: 'blockchain', type: 'type' })
 }

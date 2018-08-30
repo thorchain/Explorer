@@ -31,10 +31,5 @@ function transform (genesis: IRpcGenesis): IStoredGenesis {
 }
 
 async function load (esService: ElasticSearchService, transformed: IStoredGenesis) {
-  await esService.client.index({
-    body: transformed,
-    id: 'genesis',
-    index: 'blockchain',
-    type: 'type',
-  })
+  await esService.client.index({ body: transformed, id: 'genesis', index: 'blockchain', type: 'type' })
 }
