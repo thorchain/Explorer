@@ -60,7 +60,7 @@ export interface IRpcGenesis {
         },
         bond_height: string,
         bond_intra_tx_counter: number,
-        proposer_reward_pool: [],
+        proposer_reward_pool: any[],
         commission: string,
         commission_max: string,
         commission_change_rate: string,

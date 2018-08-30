@@ -1,8 +1,12 @@
 import * as express from 'express'
+import { ElasticSearchService } from './services/ElasticSearch'
 import { EtlService } from './services/EtlService'
+import { TendermintRpcClientService } from './services/TendermintRpcClientService'
 
 const app = express()
-const etlService = new EtlService()
+const esService = new ElasticSearchService()
+const tendermintService = new TendermintRpcClientService()
+const etlService = new EtlService(esService, tendermintService)
 etlService.start()
 
 app.get('/', (req, res) => {
