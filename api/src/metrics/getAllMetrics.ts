@@ -3,6 +3,7 @@ import { getLastStoredBlocks } from '../query/getLastStoredBlocks'
 import { getStoredGenesis } from '../query/getStoredGenesis'
 import { getStoredStatus } from '../query/getStoredStatus'
 import { getStoredValidators } from '../query/getStoredValidators'
+import { getTotalTxCount } from '../query/getTotalTxCount'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { blockFinality } from './blockFinality'
 import { capacity } from './capacity'
@@ -15,6 +16,7 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
   const { blockHeight, chainId } = await getStoredStatus(esService)
   const { validatorCount, totalStaked, totalStakedByValidators } = await getStoredValidators(esService)
   const last100Blocks = await getLastStoredBlocks(esService, 100)
+  const totalTxCount = await getTotalTxCount(esService)
 
   return {
     network: {
@@ -38,7 +40,7 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
       totalClpTxCount: null, // TODO
       totalExchanged: null, // TODO
       totalTransacted: null, // TODO
-      totalTxCount: null, // TODO
+      totalTxCount,
       txTimeLast100Blocks: transactionTime(last100Blocks),
     },
     validators: {
