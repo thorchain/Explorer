@@ -1,14 +1,15 @@
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { IStoredBlock } from '../interfaces/stored'
-import { IRpcBlock } from '../interfaces/tendermint'
+import { IRpcBlock } from '../interfaces/tendermintRpc'
 import { ElasticSearchService } from '../services/ElasticSearch'
+import { EtlService } from '../services/EtlService'
 
 /**
  * Checks for missing past blocks in database. If blocks are missing, extracts, transforms and loads them.
  * @param esService
  */
-export async function etlBlock (esService: ElasticSearchService, height: number) {
+export async function etlBlock (etlService: EtlService, esService: ElasticSearchService, height: number) {
   const extracted = await extract(height)
   const transformed = transform(extracted)
   await load(esService, transformed)

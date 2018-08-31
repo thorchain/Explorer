@@ -1,7 +1,7 @@
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { IStoredGenesis } from '../interfaces/stored'
-import { IRpcGenesis } from '../interfaces/tendermint'
+import { IRpcGenesis } from '../interfaces/tendermintRpc'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 
@@ -11,6 +11,7 @@ export async function etlGenesis (etlService: EtlService, esService: ElasticSear
     const transformed = transform(extracted.genesis)
     await load(esService, transformed)
   } catch (e) {
+    console.error('Unexpected genesis etl error, will restart etl service', e)
     // restart etl service
     etlService.stop()
     etlService.start()

@@ -7,7 +7,7 @@ export class ElasticSearchService {
   constructor () {
     this.client = new elasticsearch.Client({
       host: env.ELASTICSEARCH_HOST,
-      log: 'trace',
+      // log: 'trace',
     })
   }
 }

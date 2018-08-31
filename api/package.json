@@ -32,7 +32,7 @@
     "build": "tsc",
     "start": "ts-node ./src/index.ts",
     "debug": "npm-run-all build debug-build",
-    "debug-build": "node --inspect ./build/index.js",
+    "debug-build": "node --trace-warnings --inspect ./build/index.js",
     "test": "jest"
   },
   "jest": {

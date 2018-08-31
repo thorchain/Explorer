@@ -1,7 +1,7 @@
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { IStoredStatus } from '../interfaces/stored'
-import { IRpcStatus } from '../interfaces/tendermint'
+import { IRpcStatus } from '../interfaces/tendermintRpc'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 
@@ -11,6 +11,7 @@ export async function etlStatus (etlService: EtlService, esService: ElasticSearc
     const transformed = transform(extracted)
     await load(esService, transformed)
   } catch (e) {
+    console.error('Unexpected status etl error, will restart etl service', e)
     // restart etl service
     etlService.stop()
     etlService.start()

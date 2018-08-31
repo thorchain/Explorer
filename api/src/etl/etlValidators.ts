@@ -1,7 +1,7 @@
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { IStoredValidators } from '../interfaces/stored'
-import { IRpcValidator } from '../interfaces/tendermint'
+import { ILcdStakeDelegation, ILcdStakeValidator } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 
@@ -11,22 +11,34 @@ export async function etlValidators (etlService: EtlService, esService: ElasticS
     const transformed = transform(extracted)
     await load(esService, transformed)
   } catch (e) {
+    console.error('Unexpected validators etl error, will restart etl service', e)
     // restart etl service
     etlService.stop()
     etlService.start()
   }
 }
 
-async function extract (): Promise<IRpcValidator[]> {
-  const { result }: { result: { validators: IRpcValidator[] } } =
-    await http.get(env.TENDERMINT_RPC_REST + '/validators')
+async function extract (): Promise<{ validators: ILcdStakeValidator[], validatorDelegations: ILcdStakeDelegation[] }> {
+  const validators: ILcdStakeValidator[] =
+    await http.get(env.THORCHAIN_LCD_REST + '/stake/validators')
 
-  return result.validators
+  // extract self delegations to determine how much validators have at stake
+  const validatorDelegations = await Promise.all(validators.map(async (validator) => {
+    const delegation: ILcdStakeDelegation =
+      await http.get(env.THORCHAIN_LCD_REST + `/stake/${validator.owner}/delegation/${validator.owner}`)
+    return delegation
+  }))
+
+  return { validators, validatorDelegations }
 }
 
-function transform (validators: IRpcValidator[]): IStoredValidators {
+function transform ({ validators, validatorDelegations }: {
+  validators: ILcdStakeValidator[], validatorDelegations: ILcdStakeDelegation[],
+}): IStoredValidators {
   return {
-    totalStaked: validators.reduce((total: number, v: IRpcValidator) => total + parseFloat(v.voting_power), 0),
+    totalStaked: validators.reduce((total: number, v: ILcdStakeValidator) => total + parseFloat(v.tokens), 0),
+    totalStakedByValidators: validatorDelegations.reduce(
+      (total: number, d: ILcdStakeDelegation) => total + parseFloat(d.shares), 0),
     validatorCount: validators.length,
   }
 }

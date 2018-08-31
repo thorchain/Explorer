@@ -11,6 +11,7 @@ export interface IStoredStatus {
 export interface IStoredValidators {
   validatorCount: number,
   totalStaked: number,
+  totalStakedByValidators: number,
 }
 
 export interface IStoredBlock {
