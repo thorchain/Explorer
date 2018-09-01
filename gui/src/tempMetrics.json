@@ -1,0 +1,43 @@
+{
+    "clps": [],
+    "network": {
+        "blockFinalityLast100Blocks": 5316.656565656565,
+        "blockHeight": 306727,
+        "blockSizeLast100Blocks": null,
+        "capacityLast100Blocks": 0,
+        "genesisTime": "2018-08-12T11:10:30.259470716Z",
+        "transactionsPerSecondLast100Blocks": 0
+    },
+    "recentTxs": [],
+    "software": {
+        "daemonVersion": "0.1.0",
+        "explorerVersion": "0.1.0",
+        "testnet": "genesis-alpha"
+    },
+    "tokens": [],
+    "transactions": {
+        "aveClpFeeLast100Blocks": null,
+        "aveTxFeeLast100Blocks": null,
+        "clpTimeLast100Blocks": null,
+        "totalAdresses": null,
+        "totalClpTxCount": null,
+        "totalExchanged": null,
+        "totalTransacted": null,
+        "totalTxCount": 1436,
+        "txTimeLast100Blocks": 2658.3282828282827
+    },
+    "validators": {
+        "backupValidatorCount": null,
+        "blockReward": null,
+        "delegatedStake": 32,
+        "delegatorCount": null,
+        "inflation": null,
+        "networkSecurityInMUsd": null,
+        "queuedStake": null,
+        "stakeLevel": 0.9999999600000066,
+        "totalBlockRewards": null,
+        "totalStaked": 800000132,
+        "totalStakedByValidators": 800000100,
+        "validatorCount": 5
+    }
+}

@@ -19,6 +19,7 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
   const totalTxCount = await getTotalTxCount(esService)
 
   return {
+    clps: [], // TODO
     network: {
       blockFinalityLast100Blocks: blockFinality(last100Blocks),
       blockHeight,
@@ -27,11 +28,13 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
       genesisTime,
       transactionsPerSecondLast100Blocks: transactionsPerSecond(last100Blocks),
     },
+    recentTxs: [], // TODO
     software: {
-      daemonVersion: null, // TODO
+      daemonVersion: '0.1.0', // TOD'
       explorerVersion: version(),
       testnet: chainId,
     },
+    tokens: [], // TODO
     transactions: {
       aveClpFeeLast100Blocks: null, // TODO
       aveTxFeeLast100Blocks: null, // TODO
