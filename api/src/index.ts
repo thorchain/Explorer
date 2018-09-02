@@ -2,6 +2,7 @@ import * as express from 'express'
 import { getAllMetrics } from './metrics/getAllMetrics'
 import { ElasticSearchService } from './services/ElasticSearch'
 import { EtlService } from './services/EtlService'
+import { logger } from './services/logger'
 import { TendermintRpcClientService } from './services/TendermintRpcClientService'
 
 const app = express()
@@ -22,5 +23,5 @@ app.get('/metrics', async (req, res) => {
 })
 
 app.listen(3001, () => {
-  console.log('THORChain.info API listening on port 3001!')
+  logger.info('THORChain.info API listening on port 3001!')
 })

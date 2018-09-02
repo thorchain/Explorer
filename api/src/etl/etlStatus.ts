@@ -4,18 +4,22 @@ import { IStoredStatus } from '../interfaces/stored'
 import { IRpcStatus } from '../interfaces/tendermintRpc'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
+import { logger } from '../services/logger'
 
 export async function etlStatus (etlService: EtlService, esService: ElasticSearchService) {
+  logger.debug('etlStatus called')
+
   try {
     const extracted = await extract()
     const transformed = transform(extracted)
     await load(esService, transformed)
   } catch (e) {
-    console.error('Unexpected status etl error, will restart etl service', e)
+    logger.warn('Unexpected status etl error, will restart etl service', e)
     // restart etl service
     etlService.stop()
     etlService.start()
   }
+  logger.debug('etlStatus done')
 }
 
 async function extract (): Promise<IRpcStatus> {

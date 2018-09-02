@@ -1,1 +1,1 @@
-declare module 'tendermint'
+declare module 'tendermint';

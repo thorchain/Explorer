@@ -52,6 +52,7 @@ function httpRequest(method: string, url: string, options?: any, body?: any) {
     },
     method,
     protocol: 'http:',
+    timeout: 10e3,
   }
   if (typeof body === 'object') {
     defaults.headers['Content-Type'] = 'application/json'

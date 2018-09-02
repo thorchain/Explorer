@@ -4,18 +4,22 @@ import { IStoredValidators } from '../interfaces/stored'
 import { ILcdStakeDelegation, ILcdStakeValidator } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
+import { logger } from '../services/logger'
 
 export async function etlValidators (etlService: EtlService, esService: ElasticSearchService) {
+  logger.debug('etlValidators called')
+
   try {
     const extracted = await extract()
     const transformed = transform(extracted)
     await load(esService, transformed)
   } catch (e) {
-    console.error('Unexpected validators etl error, will restart etl service', e)
+    logger.warn('Unexpected validators etl error, will restart etl service', e)
     // restart etl service
     etlService.stop()
     etlService.start()
   }
+  logger.debug('etlValidators done')
 }
 
 async function extract (): Promise<{ validators: ILcdStakeValidator[], validatorDelegations: ILcdStakeDelegation[] }> {

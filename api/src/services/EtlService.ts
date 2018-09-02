@@ -4,42 +4,43 @@ import { etlPastBlocks } from '../etl/etlPastBlocks'
 import { etlStatus } from '../etl/etlStatus'
 import { etlValidators } from '../etl/etlValidators'
 import { ElasticSearchService } from './ElasticSearch'
+import { logger } from './logger'
 import { TendermintRpcClientService } from './TendermintRpcClientService'
 
 export class EtlService {
+  private status: 'stopped' | 'starting' | 'running' | 'stopping' = 'stopped'
   private timeout: NodeJS.Timer|null = null
-  private unsubscribers = new Set<() => void>()
+  private disposers = new Set<() => void>()
   private running = new Set<Promise<void>>()
   private startAgain = false
-  private status: 'stopped' | 'starting' | 'running' | 'stopping' = 'stopped'
 
   constructor (private esService: ElasticSearchService, private tendermintservice: TendermintRpcClientService) { }
 
   public async start () {
     if (this.status === 'starting' || this.status === 'running' || this.status === 'stopping') {
-      console.info(`EtlService is ${this.status}, will restart after it has been stopped.`)
+      logger.info(`EtlService is ${this.status}, will restart after it has been stopped.`)
       this.startAgain = true
       return
     }
     this.status = 'starting'
-    console.info('EtlService starting.')
+    logger.info('EtlService starting.')
 
-    this.unsubscribers.add(etlNewBlocks(this, this.esService, this.tendermintservice))
+    this.disposers.add(etlNewBlocks(this, this.esService, this.tendermintservice))
     this.scheduleUpdatePastData()
 
     this.status = 'running'
-    console.info('EtlService started.')
+    logger.info('EtlService started.')
   }
 
   public async stop () {
     if (this.status === 'stopping' || this.status === 'stopped') { return }
 
     this.status = 'stopping'
-    console.info('EtlService stopping.')
+    logger.info('EtlService stopping.')
 
-    // unsubsribe all
-    this.unsubscribers.forEach(unsubscriber => unsubscriber())
-    this.unsubscribers.clear()
+    // dispose all
+    this.disposers.forEach(dispose => dispose())
+    this.disposers.clear()
 
     // clear timeout
     if (this.timeout) {
@@ -57,13 +58,15 @@ export class EtlService {
     this.running.clear()
 
     this.status = 'stopped'
-    console.info('EtlService stopped.')
+    logger.info('EtlService stopped.')
 
     // restart if a restart is scheduled
     if (this.startAgain) {
-      console.info('EtlService will restart.')
-      this.startAgain = false
-      this.start()
+      logger.info('EtlService will restart in 10 seconds.')
+      setTimeout(() => {
+        this.startAgain = false
+        this.start()
+      }, 10e3)
     }
   }
 
@@ -80,9 +83,15 @@ export class EtlService {
   }
 
   private async updatePastData () {
+    if (this.status !== 'running' && this.status !== 'starting') { return }
     await etlGenesis(this, this.esService)
+    if (this.status !== 'running' && this.status !== 'starting') { return }
     await etlStatus(this, this.esService)
+    if (this.status !== 'running' && this.status !== 'starting') { return }
     await etlValidators(this, this.esService)
-    await etlPastBlocks(this, this.esService)
+    if (this.status !== 'running' && this.status !== 'starting') { return }
+    const etlPastBlocksManager = etlPastBlocks(this, this.esService)
+    this.disposers.add(etlPastBlocksManager.disposer)
+    await etlPastBlocksManager.promise
   }
 }

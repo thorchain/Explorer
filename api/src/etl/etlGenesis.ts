@@ -4,18 +4,22 @@ import { IStoredGenesis } from '../interfaces/stored'
 import { IRpcGenesis } from '../interfaces/tendermintRpc'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
+import { logger } from '../services/logger'
 
 export async function etlGenesis (etlService: EtlService, esService: ElasticSearchService) {
+  logger.debug('etlGenesis called')
+
   try {
     const extracted = await extract()
     const transformed = transform(extracted.genesis)
     await load(esService, transformed)
   } catch (e) {
-    console.error('Unexpected genesis etl error, will restart etl service', e)
+    logger.warn('Unexpected genesis etl error, will restart etl service', e)
     // restart etl service
     etlService.stop()
     etlService.start()
   }
+  logger.debug('etlGenesis done')
 }
 
 async function extract () {
