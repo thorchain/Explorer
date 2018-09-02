@@ -9,10 +9,16 @@ import { load as loadBlock, transform as transformBlock } from './etlBlock'
  * Subscribes tendermint websocket service for new blocks, extracts, transforms and loads them. Returns a callback
  * to unsubscribe the subscribed resources
  */
-export function etlNewBlocks (
-  etlService: EtlService, esService: ElasticSearchService, tendermintService: TendermintRpcClientService,
-) {
+export function etlNewBlocks (etlService: EtlService, esService: ElasticSearchService) {
   logger.debug('etlNewBlock called')
+
+  const tendermintService = new TendermintRpcClientService()
+  tendermintService.client.on('error', (e: any) => {
+    logger.warn('tendermintService RPC client error', e)
+    // restart etl service
+    etlService.stop()
+    etlService.start()
+  })
 
   function newBlockHandler (event: { block: IRpcBlock }) {
     logger.debug('etlNewBlock: block received, height ' + event.block.header.height)

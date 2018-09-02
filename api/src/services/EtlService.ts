@@ -5,7 +5,6 @@ import { etlStatus } from '../etl/etlStatus'
 import { etlValidators } from '../etl/etlValidators'
 import { ElasticSearchService } from './ElasticSearch'
 import { logger } from './logger'
-import { TendermintRpcClientService } from './TendermintRpcClientService'
 
 export class EtlService {
   private status: 'stopped' | 'starting' | 'running' | 'stopping' = 'stopped'
@@ -14,7 +13,7 @@ export class EtlService {
   private running = new Set<Promise<void>>()
   private startAgain = false
 
-  constructor (private esService: ElasticSearchService, private tendermintservice: TendermintRpcClientService) { }
+  constructor (private esService: ElasticSearchService) { }
 
   public async start () {
     if (this.status === 'starting' || this.status === 'running' || this.status === 'stopping') {
@@ -25,7 +24,7 @@ export class EtlService {
     this.status = 'starting'
     logger.info('EtlService starting.')
 
-    this.disposers.add(etlNewBlocks(this, this.esService, this.tendermintservice))
+    this.disposers.add(etlNewBlocks(this, this.esService))
     this.scheduleUpdatePastData()
 
     this.status = 'running'

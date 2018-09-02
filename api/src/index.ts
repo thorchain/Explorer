@@ -3,12 +3,10 @@ import { getAllMetrics } from './metrics/getAllMetrics'
 import { ElasticSearchService } from './services/ElasticSearch'
 import { EtlService } from './services/EtlService'
 import { logger } from './services/logger'
-import { TendermintRpcClientService } from './services/TendermintRpcClientService'
 
 const app = express()
 const esService = new ElasticSearchService()
-const tendermintService = new TendermintRpcClientService()
-const etlService = new EtlService(esService, tendermintService)
+const etlService = new EtlService(esService)
 etlService.start()
 
 // enable cors
