@@ -22,3 +22,11 @@ http://localhost:5601
 ## Building for production
 
 `yarn run build`
+
+## Deployment
+
+Requirements
+
+* ElasticSearch
+* Installed thorchaindebug
+* Running thorchaincli

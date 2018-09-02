@@ -1,5 +1,6 @@
 import * as express from 'express'
 import { getAllMetrics } from './metrics/getAllMetrics'
+import { getRecentTxsMetrics } from './metrics/getRecentTxsMetrics'
 import { ElasticSearchService } from './services/ElasticSearch'
 import { EtlService } from './services/EtlService'
 import { logger } from './services/logger'
@@ -18,6 +19,11 @@ app.use((req, res, next) => {
 
 app.get('/metrics', async (req, res) => {
   res.send(await getAllMetrics(esService))
+})
+
+app.get('/recent-txs', async (req, res) => {
+  const size = parseInt(req.query.size, 10) || 5
+  res.send(await getRecentTxsMetrics(esService, size))
 })
 
 app.listen(3001, () => {
