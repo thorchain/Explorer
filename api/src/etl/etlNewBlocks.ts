@@ -20,12 +20,13 @@ export function etlNewBlocks (etlService: EtlService, esService: ElasticSearchSe
     etlService.start()
   })
 
-  function newBlockHandler (event: { block: IRpcBlock }) {
+  async function newBlockHandler (event: { block: IRpcBlock }) {
     logger.debug('etlNewBlock: block received, height ' + event.block.header.height)
 
-    const transformed = transformBlock(event.block)
-    loadBlock(esService, transformed)
+    const transformed = await transformBlock(event.block)
+    loadBlock(etlService, esService, transformed)
   }
+
   try {
     tendermintService.client.subscribe({ query: 'tm.event = \'NewBlock\'' }, newBlockHandler)
   } catch (error) {

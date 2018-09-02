@@ -136,7 +136,7 @@ export interface IRpcBlockId {
 
 export interface IRpcBlock {
   data: {
-    txs: null,
+    txs: null | string[],
   },
   evidence: {
     evidence: null,
@@ -160,4 +160,17 @@ export interface IRpcValidator {
 export interface IRpcPubKey {
   type: 'tendermint/PubKeyEd25519',
   value: string,
+}
+
+export interface IRpcSignature {
+  pub_key: {
+    type: string,
+    value: string,
+  },
+  signature: {
+    type: string,
+    value: string,
+  },
+  account_number: string,
+  sequence: string,
 }

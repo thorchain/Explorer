@@ -1,3 +1,5 @@
+import { IRpcCoin, IRpcSignature } from './tendermintRpc'
+
 export interface ILcdStakeValidatorDescription {
   moniker: string
   identity: string
@@ -30,3 +32,38 @@ export interface ILcdStakeDelegation {
   height: string
 }
 
+export interface ILcdCosmosSdkSendMsg {
+  type: 'cosmos-sdk/Send',
+  value: {
+    inputs: ILcdCosmosSdkSendMsgInputOutput[],
+    outputs: ILcdCosmosSdkSendMsgInputOutput[],
+  },
+}
+
+export interface ILcdCosmosSdkSendMsgInputOutput {
+  address: string,
+  coins: IRpcCoin[],
+}
+
+export interface ILcdClpTradeMsg {
+  type: 'clp/MsgTrade',
+  value: {
+    Sender: string,
+    FromTicker: string,
+    ToTicker: string,
+    FromAmount: string,
+  }
+}
+
+export interface ILcdDecodedTx {
+  type: 'auth/StdTx',
+  value: {
+    msg: Array<ILcdCosmosSdkSendMsg | ILcdClpTradeMsg>,
+    fee: {
+      amount: IRpcCoin[],
+      gas: string,
+    },
+    signatures: IRpcSignature[],
+    memo: string,
+  }
+}
