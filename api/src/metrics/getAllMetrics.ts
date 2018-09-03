@@ -15,7 +15,7 @@ import { version } from './version'
 
 export async function getAllMetrics(esService: ElasticSearchService): Promise<IMetrics> {
   const { genesisTime } = await getStoredGenesis(esService)
-  const { blockHeight, chainId } = await getStoredStatus(esService)
+  const { chainId } = await getStoredStatus(esService)
   const { validatorCount, totalStaked, totalStakedByValidators } = await getStoredValidators(esService)
   const last100Blocks = await getLastStoredBlocks(esService, 100)
   const totalAddresses = await getTotalAddresses(esService)
@@ -24,7 +24,7 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
   return {
     network: {
       blockFinalityLast100Blocks: blockFinality(last100Blocks),
-      blockHeight,
+      blockHeight: last100Blocks[0].height,
       blockSizeLast100Blocks: blockSize(last100Blocks),
       capacityLast100Blocks: capacity(last100Blocks),
       genesisTime,

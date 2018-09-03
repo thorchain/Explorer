@@ -1,8 +1,8 @@
-import { IStoredRecentTx } from '../interfaces/stored'
+import { IRecentTxMetrics } from '../interfaces/metrics'
 import { getRecentTxs } from '../query/getRecentTxs'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getRecentTxsMetrics(esService: ElasticSearchService, size: number):
-  Promise<IStoredRecentTx[]> {
+  Promise<IRecentTxMetrics[]> {
   return await getRecentTxs(esService, size)
 }

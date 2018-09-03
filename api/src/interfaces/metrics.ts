@@ -57,3 +57,19 @@ export interface IMetrics {
     inflation: null | number,
   }
 }
+
+export interface IRecentTxMetrics {
+  height: number,
+  index: number,
+  type: 'Tx' | 'CLP'
+  from: string
+  to: string
+  from_coins: ICoinMetrics,
+  to_coins?: ICoinMetrics,
+  time: string,
+}
+
+export interface ICoinMetrics {
+  denom: string,
+  amount: string,
+}
