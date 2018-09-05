@@ -1,0 +1,29 @@
+---
+- name: Download nvm
+  become: no
+  get_url:
+    url: https://raw.githubusercontent.com/creationix/nvm/v0.32.0/install.sh
+    dest: /tmp/nvm-install.sh
+    mode: 0755
+
+- name: Install nvm
+  become: no
+  command: /tmp/nvm-install.sh
+
+- name: Install node
+  become: no
+  shell: . ~/.nvm/nvm.sh && nvm install 8
+
+- name: Ensure npm global packages are installed.
+  become: no
+  npm:
+    name: "{{ item.name | default(item) }}"
+    version: "{{ item.version | default('latest') }}"
+    global: yes
+    state: latest
+  # environment:
+  #   NPM_CONFIG_PREFIX: "{{ npm_config_prefix }}"
+  #   NODE_PATH: "{{ npm_config_prefix }}/lib/node_modules"
+  #   NPM_CONFIG_UNSAFE_PERM: "{{ npm_config_unsafe_perm }}"
+  with_items: "{{ nodejs_npm_global_packages }}"
+

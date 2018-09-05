@@ -1,0 +1,76 @@
+---
+- hosts: eip
+  gather_facts: yes
+  remote_user: ec2-user
+  become: yes
+  any_errors_fatal: true
+
+  vars:
+    - app_root_directory: "/srv/app"
+
+  tasks:
+    - name: Delete node modules (must be rebuilt from scratch)
+      file:
+        path: "{{app_root_directory}}/api/node_modules"
+        state: absent
+
+    - name: Ensure that app directory exists
+      file:
+        path: "{{app_root_directory}}/api/node_modules"
+        state: directory
+        mode: 0755
+
+    - name: Ship files to server
+      synchronize:
+        src: ../../api/build
+        dest: "{{app_root_directory}}/api"
+        rsync_opts:
+          - "--exclude=*.map"
+        recursive: yes
+        delete: yes
+    - synchronize:
+        src: ../../api/package.json
+        dest: "{{app_root_directory}}/api"
+    - synchronize:
+        src: ../../api/yarn.lock
+        dest: "{{app_root_directory}}/api"
+    - synchronize:
+        src: ../../api/.env.production.local
+        dest: "{{app_root_directory}}/api/.env"
+    - synchronize:
+        src: ../../gui/build
+        dest: "{{app_root_directory}}/gui"
+        rsync_opts:
+          - "--exclude=*.map"
+        recursive: yes
+        delete: yes
+
+    - name: Ensure user has read and write access on all files
+      file:
+        path: "{{app_root_directory}}"
+        owner: ec2-user
+        group: ec2-user
+        mode: u=rwX,g=rX,o=rX
+        recurse: yes
+
+    - name: Install yarn dependencies
+      become: no
+      command: "yarn"
+      args:
+        chdir: "{{app_root_directory}}/api"
+
+    - name: "Check list of Node.js apps running."
+      command: "{{app_root_directory}}/api/node_modules/.bin/forever list"
+      register: forever_list
+      become: no
+      changed_when: false
+
+    - name: "Stop node.js app."
+      become: no
+      command: "{{app_root_directory}}/api/node_modules/.bin/forever stop {{app_root_directory}}/api/build/index.js"
+      when: "forever_list.stdout.find('/api/build/index.js') != -1"
+      ignore_errors: yes
+
+    - name: "Start node.js app."
+      become: no
+      command: "{{app_root_directory}}/api/node_modules/.bin/forever start {{app_root_directory}}/api/build/index.js"

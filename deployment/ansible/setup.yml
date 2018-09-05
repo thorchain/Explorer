@@ -1,0 +1,38 @@
+---
+- hosts: eip
+  gather_facts: yes
+  remote_user: ec2-user
+  become: yes
+  any_errors_fatal: true
+
+  vars:
+    # app
+    - app_express_port: 3001
+    - app_root_directory: "/srv/app"
+    - domain: "thorchain.info"
+
+    # Certbot
+    - certbot_email: "hostmaster@thorchain.info"
+    - certbot_domains:
+      - "thorchain.info"
+      - "www.thorchain.info"
+
+    # Nodejs
+    - nodejs_version: "8.x"
+    - nodejs_npm_global_packages:
+      - name: yarn
+
+  pre_tasks:
+    - name: Create app api root directory
+      file: path={{ app_root_directory }}/api state=directory recurse=yes
+
+    - name: Create app gui root directory
+      file: path={{ app_root_directory }}/gui state=directory recurse=yes
+
+    - name: "Ensure that node.js app is automatically launched at system startup: Creates an entry like @reboot /some/job.sh"
+      cron: name="start nodejs module at reboot" special_time=reboot job="{{app_root_directory}}/api/node_modules/.bin/forever start {{app_root_directory}}/api/build/src/index.js"
+
+  roles:
+    - nginx
+    - certbot
+    - node
