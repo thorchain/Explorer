@@ -3,6 +3,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { formatNum } from '../helpers/formatNum'
 import { IRecentTxMetrics } from '../interfaces/metrics'
+import { IconArrowRight } from './IconArrowRight'
 import { IconClock } from './IconClock'
 import { Label } from './Label'
 import { Title } from './Title'
@@ -45,6 +46,10 @@ export const RecentTxs = ({ txs }: { txs: IRecentTxMetrics[] }) => <Container>
           <Title>From</Title>
           <Label>{tx.from}</Label>
         </Td>
+        <Td style={{ width: 16 }}>
+          <Title>&nbsp;</Title>
+          <Label><IconArrowRight style={{position: 'relative' }} /></Label>
+        </Td>
         <Td style={{ width: 220 }}>
           <Title>To</Title>
           <Label>{tx.to}</Label>
@@ -55,7 +60,7 @@ export const RecentTxs = ({ txs }: { txs: IRecentTxMetrics[] }) => <Container>
             {tx.from_coins.amount} {tx.from_coins.denom}
             {tx.to_coins &&
               (tx.from_coins.amount !== tx.to_coins.amount || tx.from_coins.denom !== tx.to_coins.denom) && (
-                <span>{tx.to_coins.amount} {tx.to_coins.denom}</span>
+                <span><IconArrowRight style={{ margin: '0 12px' }} />{tx.to_coins.amount} {tx.to_coins.denom}</span>
             )}
           </Label>
         </Td>

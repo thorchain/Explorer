@@ -150,6 +150,16 @@ export interface IRpcBlockMeta {
   header: IRpcBlockHeader
 }
 
+export interface IRpcBlockResults {
+  height: string,
+  results: {
+    DeliverTx: Array<{ log: string, gasUsed: string, fee: {} }>,
+    EndBlock: {
+      validator_updates: null,
+    },
+  }
+}
+
 export interface IRpcValidator {
   accum: string,
   address: string,

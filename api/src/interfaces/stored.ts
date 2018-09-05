@@ -22,6 +22,8 @@ export interface IStoredBlock {
   numTxs: number,
   size: number,
   time: string,
+  amountTransacted: number,
+  amountTransactedClp: number,
 }
 
 export interface IStoredRecentTx {

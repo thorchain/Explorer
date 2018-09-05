@@ -224,11 +224,11 @@ class App extends React.Component<object, object> {
             <PaneRow>
               <TitleLabel>
                 <Title>Total Transacted</Title>
-                <Label><Placeholder /></Label>
+                <Label>{formatNum(transactions.totalTransacted!, 1, 'millions') + ' ᚱ'}</Label>
               </TitleLabel>
               <TitleLabel>
                 <Title>Total Exchanged</Title>
-                <Label><Placeholder /></Label>
+                <Label>{formatNum(transactions.totalExchanged!, 1, 'millions') + ' ᚱ'}</Label>
               </TitleLabel>
               <TitleLabel />
             </PaneRow>
@@ -239,7 +239,7 @@ class App extends React.Component<object, object> {
               </TitleLabel>
               <TitleLabel>
                 <Title>CLP Time</Title>
-                <Label><Placeholder /></Label>
+                <Label><IconTime />{formatNum(transactions.clpTimeLast100Blocks!) + 'ms'}</Label>
               </TitleLabel>
               <TitleLabel />
             </PaneRow>

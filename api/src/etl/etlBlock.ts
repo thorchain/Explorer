@@ -4,11 +4,12 @@ import { calcBase64ByteSize } from '../helpers/calcBase64ByteSize'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { IStoredBlock, IStoredRecentTx } from '../interfaces/stored'
-import { IRpcBlock } from '../interfaces/tendermintRpc'
+import { IRpcBlock, IRpcBlockResults } from '../interfaces/tendermintRpc'
 import { ILcdDecodedTx } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
+import { extract as extractBlockResults } from './etlBlockResults'
 
 const promisedExec = promisify(exec)
 
@@ -26,25 +27,35 @@ async function extract (height: number): Promise<IRpcBlock> {
 }
 
 export async function transform (block: IRpcBlock): Promise<ITransformedBlock> {
-  const result = {
+  const result: ITransformedBlock = {
     addresses: new Set<string>(),
     block: {
+      amountTransacted: 0,
+      amountTransactedClp: 0,
       height: parseInt(block.header.height, 10),
       numClpTxs: 0,
       numTxs: parseInt(block.header.num_txs, 10),
       size: block.data.txs ? block.data.txs.map(calcBase64ByteSize).reduce((sum, size) => sum + size, 0) : 0,
       time: block.header.time,
     },
-    clpTransacted: {},
     recentTxs: [],
-    totalTransacted: {},
   }
+
+  const cache: ITransformCache = { blockResults: null, amountTransacted: new Map<string, number>() }
 
   if (block.data.txs) {
-    await Promise.all(block.data.txs.map(transformTx(result)))
+    await Promise.all(block.data.txs.map(transformTx(result, cache)))
   }
 
-  // TODO: convert currencies of clpTransacted and totalTransacted
+  // convert and add other currencies than RUNE of amountTransacted map to block
+  for (const [denom, amount] of cache.amountTransacted) {
+    if (denom === 'RUNE') {
+      result.block.amountTransacted += amount
+      continue
+    }
+    // TODO get current exchange rate
+    // await http.get(env.TENDERMINT_RPC_REST + `/clp/${denom}?height=${result.block.height}`)
+  }
 
   return result
 }
@@ -68,9 +79,6 @@ export async function load(etlService: EtlService, esService: ElasticSearchServi
     bulkBody.push(recentTx)
   }))
 
-  // TODO: add clpTransacted
-  // TODO: add totalTransacted
-
   await esService.client.bulk({ body: bulkBody }, (err, res) => {
     if (err) {
       logger.warn('Unexpected block etl bulk insert error, will restart etl service', err)
@@ -81,7 +89,9 @@ export async function load(etlService: EtlService, esService: ElasticSearchServi
   })
 }
 
-const transformTx = (result: ITransformedBlock) => async (tx: string): Promise<void> => {
+const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
+  async (tx: string, index: number): Promise<void> => {
+
   // put recentTxs into result first, so order is maintained
   const recentTxs: IStoredRecentTx[] = []
   result.recentTxs.push(recentTxs)
@@ -98,7 +108,7 @@ const transformTx = (result: ITransformedBlock) => async (tx: string): Promise<v
     for (const msg of decodedTx.value.msg) {
       if (msg.type === 'cosmos-sdk/Send') {
         // input coins are enough for total transacted, output must match input
-        msg.value.inputs.forEach(i => { i.coins.forEach(c => result.totalTransacted[c.denom] += Number(c.amount)) })
+        msg.value.inputs.forEach(i => { i.coins.forEach(c => cache.amountTransacted[c.denom] += Number(c.amount)) })
         // output addresses is enough, every address needs to have been the output of another before
         msg.value.outputs.forEach(o => result.addresses.add(o.address))
 
@@ -116,12 +126,17 @@ const transformTx = (result: ITransformedBlock) => async (tx: string): Promise<v
           to_coins: outputs[0].coins[0],
           type: 'Tx',
         } as IStoredRecentTx)
-      }
-      else if (msg.type === 'clp/MsgTrade') { // TODO add bridged clp txs, should have same structure
+      } else if (msg.type === 'clp/MsgTrade') {
         result.block.numClpTxs++
 
-        // input coins are enough for clp transacted, output must match input
-        result.clpTransacted[msg.value.FromTicker] += Number(msg.value.FromAmount)
+        // get to amount and rune transacted
+        if (cache.blockResults === null) {
+          cache.blockResults = await extractBlockResults(result.block.height)
+        }
+
+        const transformedBlockResults = await transformBlockResults(cache.blockResults, index)
+
+        result.block.amountTransactedClp += transformedBlockResults.runeTransacted
 
         recentTxs.push({
           from: msg.value.Sender,
@@ -129,7 +144,7 @@ const transformTx = (result: ITransformedBlock) => async (tx: string): Promise<v
           height: result.block.height,
           time: result.block.time,
           to: msg.value.Sender,
-          to_coins: { amount: 'TODO', denom: msg.value.ToTicker }, // TODO add amount
+          to_coins: { amount: `${transformedBlockResults.toTokenReceived}`, denom: msg.value.ToTicker },
           type: 'CLP',
         } as IStoredRecentTx)
       }
@@ -137,10 +152,25 @@ const transformTx = (result: ITransformedBlock) => async (tx: string): Promise<v
   }
 }
 
+function transformBlockResults (blockResults: IRpcBlockResults, index: number): ITransformedBlockResultsMsg {
+  const log = blockResults.results.DeliverTx[index].log
+  const logJSON = JSON.parse(log.split('json')[1]) as ITransformedBlockResultsMsg
+  return logJSON
+}
+
+interface ITransformCache {
+  blockResults: null | IRpcBlockResults,
+  amountTransacted: Map<string, number>,
+}
+
 interface ITransformedBlock {
   addresses: Set<string>
   block: IStoredBlock
-  clpTransacted: { [denom: string]: number }
   recentTxs: IStoredRecentTx[][]
-  totalTransacted: { [denom: string]: number }
+}
+
+interface ITransformedBlockResultsMsg {
+  fromTokenSpent: number,
+  runeTransacted: number,
+  toTokenReceived: number,
 }
