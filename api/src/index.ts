@@ -17,6 +17,10 @@ app.use((req, res, next) => {
   next()
 })
 
+app.get('/status', async (req, res) => {
+  res.sendStatus(200)
+})
+
 app.get('/metrics', async (req, res) => {
   res.send(await getAllMetrics(esService))
 })
