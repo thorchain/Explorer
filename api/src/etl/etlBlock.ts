@@ -101,20 +101,29 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
   const recentTxs: IStoredRecentTx[] = []
   result.recentTxs.push(recentTxs)
 
-  let decodedTx: ILcdDecodedTx
+  let decodedTx: string
   try {
-    let stdout: string
     let stderr
-    ({ stdout, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`, { timeout: 2000 }))
-
-    decodedTx = JSON.parse(stdout!)
+    ({ stdout: decodedTx, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`))
+    if (stderr) {
+      console.error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${stderr}`)
+      return
+    }
   } catch (e) {
-    console.error(`Cound not decode and parse tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
+    console.error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
     return
   }
 
-  if (decodedTx.type === 'auth/StdTx') {
-    for (const msg of decodedTx.value.msg) {
+  let parsedTx: ILcdDecodedTx
+  try {
+    parsedTx = JSON.parse(decodedTx)
+  } catch (e) {
+    console.error(`Cound not parse tx ${index} in block ${result.block.height}: "${decodedTx}", got error: ${e}`)
+    return
+  }
+
+  if (parsedTx.type === 'auth/StdTx') {
+    for (const msg of parsedTx.value.msg) {
       if (msg.type === 'cosmos-sdk/Send') {
         // input coins are enough for total transacted, output must match input
         msg.value.inputs.forEach(i => { i.coins.forEach(c => cache.amountTransacted[c.denom] += Number(c.amount)) })

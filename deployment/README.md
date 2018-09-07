@@ -26,7 +26,7 @@ cd ../THORChain.info
 sh
 ```
 cd api && yarn build && cd ..
-cd gui && yarn build && cd ..
+cd gui && REACT_APP_API_HOST="https://thorchain.info/api" yarn run build && cd ..
 ```
 
 3. Setup infrastructure (only required once or when the chain id or node IP of the validator changes)
