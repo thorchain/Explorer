@@ -47,10 +47,3 @@ cd deployment/terraform
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i /usr/local/bin/terraform-inventory ../ansible/deploy.yml
 cd ../..
 ```
-
-5. Start service TODO: do manually
-
-sh
-```
-thorchaincli advanced rest-server --chain-id "genesis-alpha" --node "tcp://18.222.193.94:26657"
-```
