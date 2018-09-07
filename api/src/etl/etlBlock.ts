@@ -104,7 +104,7 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
 
     decodedTx = JSON.parse(stdout!)
   } catch (e) {
-    throw new Error(`Cound not transform tx, got error ${e}`)
+    throw new Error(`Cound not decode and parse tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
   }
 
   if (decodedTx.type === 'auth/StdTx') {
@@ -137,7 +137,7 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
           cache.blockResults = await extractBlockResults(result.block.height)
         }
 
-        const transformedBlockResults = await transformBlockResults(cache.blockResults, index)
+        const transformedBlockResults = await transformBlockResults(result, cache.blockResults, index)
 
         result.block.amountTransactedClp += transformedBlockResults.runeTransacted
 
@@ -155,10 +155,18 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
   }
 }
 
-function transformBlockResults (blockResults: IRpcBlockResults, index: number): ITransformedBlockResultsMsg {
+function transformBlockResults (result: ITransformedBlock, blockResults: IRpcBlockResults, index: number):
+  ITransformedBlockResultsMsg {
   const log = blockResults.results.DeliverTx[index].log
-  const logJSON = JSON.parse(log.split('json')[1]) as ITransformedBlockResultsMsg
-  return logJSON
+  if (!log) { return { fromTokenSpent: 0, runeTransacted: 0, toTokenReceived: 0 } }
+  try {
+    const logJSON = JSON.parse(log.split('json')[1]) as ITransformedBlockResultsMsg
+    return logJSON
+  } catch (e) {
+    console.error(`Cound not parse block result msg for tx ${index} in block ${result.block.height}: ${log}, `
+      + `got error: ${e}`)
+    throw e
+  }
 }
 
 interface ITransformCache {
