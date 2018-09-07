@@ -11,6 +11,16 @@ export SSH_PUBLIC_FILE="$HOME/.ssh/id_rsa.pub"
 export SSH_PRIVATE_FILE="$HOME/.ssh/id_rsa"
 ```
 
+2. Build thorchaincli and thorchaindebug
+
+sh
+```
+cd ../THORChain
+make build-linux
+make build-debug-linux
+cd ../THORChain.info
+```
+
 2. Build the apps
 
 sh
@@ -29,11 +39,18 @@ ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i /usr/local/bin/terraform-inv
 cd ../..
 ```
 
-3. Setup infrastructure (only required once)
+4. Deploy
 
 sh
 ```
 cd deployment/terraform
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i /usr/local/bin/terraform-inventory ../ansible/deploy.yml
 cd ../..
+```
+
+5. Start service TODO: do manually
+
+sh
+```
+thorchaincli advanced rest-server --chain-id "genesis-alpha" --node "tcp://18.222.193.94:26657"
 ```

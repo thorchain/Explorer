@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react'
 import * as moment from 'moment'
 import * as React from 'react'
-import { API_HOST } from '../config'
+import { env } from '../helpers/env'
 import { formatByteSize } from '../helpers/formatByteSize'
 import { formatNum } from '../helpers/formatNum'
 import { formatPercent } from '../helpers/formatPercent'
@@ -258,10 +258,11 @@ class App extends React.Component<object, object> {
     )
   }
 
-  private loadMetrics = async () => this.setState({ metrics: await http.get(API_HOST + '/metrics') })
+  private loadMetrics = async () => this.setState({ metrics: await http.get(env.REACT_APP_API_HOST + '/metrics') })
 
-  private loadRecentTxs = async () =>
-    this.setState({ recentTxs: await http.get(API_HOST + `/recent-txs?size=${this.state.recentTxsSize}`) })
+  private loadRecentTxs = async () => this.setState({
+    recentTxs: await http.get(env.REACT_APP_API_HOST + `/recent-txs?size=${this.state.recentTxsSize}`),
+  })
 }
 
 export default App

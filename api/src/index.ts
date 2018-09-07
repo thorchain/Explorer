@@ -17,15 +17,15 @@ app.use((req, res, next) => {
   next()
 })
 
-app.get('/status', async (req, res) => {
+app.get('/api/status', async (req, res) => {
   res.sendStatus(200)
 })
 
-app.get('/metrics', async (req, res) => {
+app.get('/api/metrics', async (req, res) => {
   res.send(await getAllMetrics(esService))
 })
 
-app.get('/recent-txs', async (req, res) => {
+app.get('/api/recent-txs', async (req, res) => {
   const size = parseInt(req.query.size, 10) || 5
   res.send(await getRecentTxsMetrics(esService, size))
 })

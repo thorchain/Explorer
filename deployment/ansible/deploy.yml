@@ -7,6 +7,8 @@
 
   vars:
     - app_root_directory: "/srv/app"
+    - cli_binary: "../../../THORChain/build/thorchaincli"
+    - debug_binary: "../../../THORChain/build/thorchaindebug"
 
   tasks:
     - name: Delete node modules (must be rebuilt from scratch)
@@ -44,6 +46,18 @@
           - "--exclude=*.map"
         recursive: yes
         delete: yes
+
+    - name: Copy cli binary
+      copy:
+        src: "{{cli_binary}}"
+        dest: /usr/bin
+        mode: 0755
+
+    - name: Copy debug binary
+      copy:
+        src: "{{debug_binary}}"
+        dest: /usr/bin
+        mode: 0755
 
     - name: Ensure user has read and write access on all files
       file:

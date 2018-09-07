@@ -32,6 +32,10 @@
     - name: "Ensure that node.js app is automatically launched at system startup: Creates an entry like @reboot /some/job.sh"
       cron: name="start nodejs module at reboot" special_time=reboot job="{{app_root_directory}}/api/node_modules/.bin/forever start {{app_root_directory}}/api/build/src/index.js"
 
+    - name: Append api node modules to path in .bashrc
+      lineinfile: dest=~/.bashrc line='export PATH=$PATH:{{ app_root_directory }}/api/node_modules/.bin'
+      become: no
+
   roles:
     - nginx
     - certbot
