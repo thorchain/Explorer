@@ -52,6 +52,7 @@
         src: "{{cli_binary}}"
         dest: /usr/bin
         mode: 0755
+      notify: restart thorchainlcd
 
     - name: Copy debug binary
       copy:
@@ -72,6 +73,12 @@
       command: "yarn"
       args:
         chdir: "{{app_root_directory}}/api"
+
+    - name: Start thorchain LCD service
+      service:
+        name: thorchainlcd
+        state: started
+        enabled: yes
 
     - name: "Check list of Node.js apps running."
       command: "{{app_root_directory}}/api/node_modules/.bin/forever list"

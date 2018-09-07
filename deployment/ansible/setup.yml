@@ -40,3 +40,4 @@
     - nginx
     - certbot
     - node
+    - thorchainlcd

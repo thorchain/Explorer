@@ -1,0 +1,17 @@
+[Unit]
+Description=thorchainlcd
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+User=ec2-user
+Group=ec2-user
+PermissionsStartOnly=true
+ExecStart=/usr/bin/thorchaincli advanced rest-server --chain-id {{CHAIN_ID}} --node {{NODE}}
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
+
