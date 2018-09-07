@@ -100,7 +100,7 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
   try {
     let stdout: string
     let stderr
-    ({ stdout, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`))
+    ({ stdout, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`, { timeout: 2000 }))
 
     decodedTx = JSON.parse(stdout!)
   } catch (e) {
