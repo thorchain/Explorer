@@ -96,13 +96,16 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
   const recentTxs: IStoredRecentTx[] = []
   result.recentTxs.push(recentTxs)
 
-  let stdout: string
-  let stderr
-  ({ stdout, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`))
+  let decodedTx: ILcdDecodedTx
+  try {
+    let stdout: string
+    let stderr
+    ({ stdout, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`))
 
-  if (stderr) { throw new Error(`Cound not transform tx, got error ${stderr}`) }
-
-  const decodedTx: ILcdDecodedTx = JSON.parse(stdout!)
+    decodedTx = JSON.parse(stdout!)
+  } catch (e) {
+    throw new Error(`Cound not transform tx, got error ${e}`)
+  }
 
   if (decodedTx.type === 'auth/StdTx') {
     for (const msg of decodedTx.value.msg) {
