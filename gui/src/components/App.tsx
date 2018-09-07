@@ -110,7 +110,7 @@ class App extends React.Component<object, object> {
             <PaneRow>
               <TitleLabel>
                 <Title>Capacity</Title>
-                <CapacityGauge capacity={network.capacityLast100Blocks! * 1000} />
+                <CapacityGauge capacity={network.capacityLast100Blocks! * 10000 / 1000} />
               </TitleLabel>
             </PaneRow>
           </Pane>

@@ -50,7 +50,7 @@ const GaugeLabel = styled(Label)`
 export const CapacityGauge = ({ capacity }: { capacity: number }) => (
   <Container>
     <Path />
-    <Active capacity={capacity} />
+    <Active capacity={capacity > 1 ? 1 : capacity} />
     <Overlay />
     <GaugeLabel>{formatPercent(capacity)}</GaugeLabel>
   </Container>
