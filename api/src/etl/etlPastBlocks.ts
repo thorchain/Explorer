@@ -27,7 +27,7 @@ export function etlPastBlocks (etlService: EtlService, esService: ElasticSearchS
 async function doEtlPastBlocks (
   etlService: EtlService, esService: ElasticSearchService, state: { cancelled: boolean },
 ) {
-  const limiter = new ParallelPromiseLimiter(100) // TODO: increase to 100
+  const limiter = new ParallelPromiseLimiter(10)
 
   function onError(e: Error) {
     logger.warn('Unexpected past blocks etl error, will restart etl service', e)
