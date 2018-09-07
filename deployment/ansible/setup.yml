@@ -36,6 +36,20 @@
       lineinfile: dest=~/.bashrc line='export PATH=$PATH:{{ app_root_directory }}/api/node_modules/.bin'
       become: no
 
+    - name: Increase ulimit for open files, since block processing creates a lot of requests to thorchaindebug
+      pam_limits:
+        domain: ec2-user
+        limit_type: '-'
+        limit_item: nofile
+        value: 64000
+
+    - name: Increase ulimit for processes, since block processing creates a lot of requests to thorchaindebug
+      pam_limits:
+        domain: ec2-user
+        limit_type: '-'
+        limit_item: nproc
+        value: 16384
+
   roles:
     - nginx
     - certbot
