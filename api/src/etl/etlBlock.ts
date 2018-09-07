@@ -9,6 +9,7 @@ import { ILcdDecodedTx } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
+import { ParallelPromiseLimiter } from '../services/ParallelPromiseLimiter'
 import { extract as extractBlockResults } from './etlBlockResults'
 
 const promisedExec = promisify(exec)
@@ -44,7 +45,11 @@ export async function transform (block: IRpcBlock): Promise<ITransformedBlock> {
   const cache: ITransformCache = { blockResults: null, amountTransacted: new Map<string, number>() }
 
   if (block.data.txs) {
-    await Promise.all(block.data.txs.map(transformTx(result, cache)))
+    const limiter = new ParallelPromiseLimiter(10)
+
+    for (let i = 0; i < block.data.txs.length; i++) {
+      await limiter.push(() => transformTx(result, cache)(block.data.txs![i], i))
+    }
   }
 
   // convert and add other currencies than RUNE of amountTransacted map to block
@@ -104,7 +109,8 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
 
     decodedTx = JSON.parse(stdout!)
   } catch (e) {
-    throw new Error(`Cound not decode and parse tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
+    console.error(`Cound not decode and parse tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
+    return
   }
 
   if (decodedTx.type === 'auth/StdTx') {
