@@ -47,6 +47,8 @@
         recursive: yes
         delete: yes
 
+    - import_tasks: roles/thorchainlcd/handlers/main.yml
+
     - name: Copy cli binary
       copy:
         src: "{{cli_binary}}"
