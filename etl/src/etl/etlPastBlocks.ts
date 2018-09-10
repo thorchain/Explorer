@@ -1,9 +1,9 @@
-import { getLatestBlockHeight } from '../query/getLatestBlockHeight'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
 import { ParallelPromiseLimiter } from '../services/ParallelPromiseLimiter'
 import { etlBlock } from './etlBlock'
+import { getLatestBlockHeight } from './getLatestBlockHeight'
 
 /**
  * Checks for missing past blocks in database. If blocks are missing, extracts, transforms and loads them.

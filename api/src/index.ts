@@ -2,13 +2,10 @@ import * as express from 'express'
 import { getAllMetrics } from './metrics/getAllMetrics'
 import { getRecentTxsMetrics } from './metrics/getRecentTxsMetrics'
 import { ElasticSearchService } from './services/ElasticSearch'
-import { EtlService } from './services/EtlService'
 import { logger } from './services/logger'
 
 const app = express()
 const esService = new ElasticSearchService()
-const etlService = new EtlService(esService)
-etlService.start()
 
 // enable cors
 app.use((req, res, next) => {
@@ -22,12 +19,20 @@ app.get('/api/status', async (req, res) => {
 })
 
 app.get('/api/metrics', async (req, res) => {
-  res.send(await getAllMetrics(esService))
+  try {
+    res.send(await getAllMetrics(esService))
+  } catch (e) {
+    res.sendStatus(500)
+  }
 })
 
 app.get('/api/recent-txs', async (req, res) => {
   const size = parseInt(req.query.size, 10) || 5
-  res.send(await getRecentTxsMetrics(esService, size))
+  try {
+    res.send(await getRecentTxsMetrics(esService, size))
+  } catch (e) {
+    res.sendStatus(500)
+  }
 })
 
 app.listen(3001, () => {

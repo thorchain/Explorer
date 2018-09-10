@@ -5,6 +5,9 @@ config({ path: path.resolve(__dirname, '..', '..', '.env') })
 
 export const env = {
   ELASTICSEARCH_HOST: getEnvStr('ELASTICSEARCH_HOST'),
+  TENDERMINT_RPC_REST: getEnvStr('TENDERMINT_RPC_REST'),
+  TENDERMINT_RPC_WS: getEnvStr('TENDERMINT_RPC_WS'),
+  THORCHAIN_LCD_REST: getEnvStr('THORCHAIN_LCD_REST'),
 }
 
 // function getEnvInt (key: string, defaultValue?: number): number {

@@ -1,9 +1,9 @@
 import { sleep } from '../helpers/sleep'
-import { getLatestBlockHeight } from '../query/getLatestBlockHeight'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
 import { etlBlock } from './etlBlock'
+import { getLatestBlockHeight } from './getLatestBlockHeight'
 
 /**
  * Subscribes tendermint websocket service for new blocks, extracts, transforms and loads them. Returns a callback
@@ -16,7 +16,7 @@ export function etlNewBlocks (etlService: EtlService, esService: ElasticSearchSe
 
   return {
     disposer: () => {
-      logger.debug('etlPastBlocks.disposer called')
+      logger.debug('etlNewBlocks.disposer called')
       state.cancelled = true
     },
     promise: doEtlNewBlocks(etlService, esService, state),
