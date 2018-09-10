@@ -1,9 +1,9 @@
-import { IRpcBlock } from '../interfaces/tendermintRpc'
+import { sleep } from '../helpers/sleep'
+import { getLatestBlockHeight } from '../query/getLatestBlockHeight'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
-import { TendermintRpcClientService } from '../services/TendermintRpcClientService'
-import { load as loadBlock, transform as transformBlock } from './etlBlock'
+import { etlBlock } from './etlBlock'
 
 /**
  * Subscribes tendermint websocket service for new blocks, extracts, transforms and loads them. Returns a callback
@@ -12,31 +12,35 @@ import { load as loadBlock, transform as transformBlock } from './etlBlock'
 export function etlNewBlocks (etlService: EtlService, esService: ElasticSearchService) {
   logger.debug('etlNewBlock called')
 
-  const tendermintService = new TendermintRpcClientService()
-  tendermintService.client.on('error', (e: any) => {
-    logger.warn('tendermintService RPC client error', e)
-    // restart etl service
-    etlService.stop()
-    etlService.start()
-  })
+  const state = { cancelled: false }
 
-  async function newBlockHandler (event: { block: IRpcBlock }) {
-    logger.debug('etlNewBlock: block received, height ' + event.block.header.height)
-
-    const transformed = await transformBlock(event.block)
-    loadBlock(etlService, esService, transformed)
+  return {
+    disposer: () => {
+      logger.debug('etlPastBlocks.disposer called')
+      state.cancelled = true
+    },
+    promise: doEtlNewBlocks(etlService, esService, state),
   }
+}
 
-  try {
-    tendermintService.client.subscribe({ query: 'tm.event = \'NewBlock\'' }, newBlockHandler)
-  } catch (error) {
-    logger.warn('Unexpected new block etl subscription error, will restart etl service', error)
-    // restart etl service
-    etlService.stop()
-    etlService.start()
-  }
-  return () => {
-    logger.debug('etlNewBlock: unsubscribe called')
-    tendermintService.client.unsubscribe({ query: 'tm.event = \'NewBlock\'' })
+async function doEtlNewBlocks (
+  etlService: EtlService, esService: ElasticSearchService, state: { cancelled: boolean },
+) {
+  const latestBlockHeight = await getLatestBlockHeight(esService)
+
+  let heightToFetch = latestBlockHeight + 1
+  while (!state.cancelled) {
+    logger.debug('get new block at height ' + heightToFetch)
+    try {
+      await etlBlock(etlService, esService, heightToFetch)
+      await sleep(100)
+      heightToFetch++
+    } catch (e) {
+      // TODO expect that sometimes blocks are not yet produced?
+      logger.warn('Unexpected new block etl error, will restart etl service', e)
+      // restart etl service
+      etlService.stop()
+      etlService.start()
+    }
   }
 }

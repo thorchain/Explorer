@@ -24,7 +24,7 @@ export class EtlService {
     this.status = 'starting'
     logger.info('EtlService starting.')
 
-    this.disposers.add(etlNewBlocks(this, this.esService))
+    this.disposers.add(etlNewBlocks(this, this.esService).disposer)
     this.scheduleUpdatePastData()
 
     this.status = 'running'

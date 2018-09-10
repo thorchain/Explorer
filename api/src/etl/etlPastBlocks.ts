@@ -1,4 +1,4 @@
-import { IStoredStatus } from '../interfaces/stored'
+import { getLatestBlockHeight } from '../query/getLatestBlockHeight'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
@@ -48,11 +48,6 @@ async function doEtlPastBlocks (
     await limiter.push(() => etlBlock(etlService, esService, height).catch(onError))
   }
   logger.debug('etlPastBlocks done')
-}
-
-async function getLatestBlockHeight (esService: ElasticSearchService) {
-  const result = await esService.client.get<IStoredStatus>({ id: 'status', index: 'blockchain', type: 'type' })
-  return result._source.blockHeight
 }
 
 async function doesBlockExist (esService: ElasticSearchService, height: number) {
