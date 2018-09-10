@@ -1,4 +1,4 @@
-import { logger } from './logger'
+// import { logger } from './logger'
 
 /**
  * Service that lets you limit how many promises can be run in parallel. The push method should be awaited and will
@@ -19,11 +19,12 @@ export class ParallelPromiseLimiter {
 
   private async blockUntilUnderLimit () {
     if (this.promises.size >= this.limit) {
-      logger.debug(`ParallelPromiseLimiter will block, promise size: ${this.promises.size}, limit: ${this.limit}`)
+      // logger.debug(`ParallelPromiseLimiter will block, promise size: ${this.promises.size}, limit: ${this.limit}`)
       await Promise.race(this.promises)
       await this.blockUntilUnderLimit()
     } else {
-      logger.debug(`ParallelPromiseLimiter will not block, promise size: ${this.promises.size}, limit: ${this.limit}`)
+      // logger.debug(
+        // `ParallelPromiseLimiter will not block, promise size: ${this.promises.size}, limit: ${this.limit}`)
     }
   }
 

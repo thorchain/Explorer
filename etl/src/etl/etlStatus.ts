@@ -14,10 +14,7 @@ export async function etlStatus (etlService: EtlService, esService: ElasticSearc
     const transformed = transform(extracted)
     await load(esService, transformed)
   } catch (e) {
-    logger.warn('Unexpected status etl error, will restart etl service', e)
-    // restart etl service
-    etlService.stop()
-    etlService.start()
+    logger.error('Unexpected status etl error', e)
   }
   logger.debug('etlStatus done')
 }
@@ -30,7 +27,6 @@ async function extract (): Promise<IRpcStatus> {
 
 function transform (status: IRpcStatus): IStoredStatus {
   return {
-    blockHeight: parseInt(status.sync_info.latest_block_height, 10),
     chainId: status.node_info.network,
   }
 }

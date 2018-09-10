@@ -6,7 +6,6 @@ export interface IStoredGenesis {
 }
 
 export interface IStoredStatus {
-  blockHeight: number,
   chainId: string,
 }
 

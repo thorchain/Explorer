@@ -14,10 +14,7 @@ export async function etlGenesis (etlService: EtlService, esService: ElasticSear
     const transformed = transform(extracted.genesis)
     await load(esService, transformed)
   } catch (e) {
-    logger.warn('Unexpected genesis etl error, will restart etl service', e)
-    // restart etl service
-    etlService.stop()
-    etlService.start()
+    logger.error('Unexpected genesis etl error', e)
   }
   logger.debug('etlGenesis done')
 }

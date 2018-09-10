@@ -14,10 +14,7 @@ export async function etlValidators (etlService: EtlService, esService: ElasticS
     const transformed = transform(extracted)
     await load(esService, transformed)
   } catch (e) {
-    logger.warn('Unexpected validators etl error, will restart etl service', e)
-    // restart etl service
-    etlService.stop()
-    etlService.start()
+    logger.error('Unexpected validators etl error', e)
   }
   logger.debug('etlValidators done')
 }

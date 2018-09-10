@@ -1,5 +1,5 @@
 import { etlGenesis } from '../etl/etlGenesis'
-import { etlNewBlocks } from '../etl/etlNewBlocks'
+import { etlNewestBlock } from '../etl/etlNewestBlock'
 import { etlPastBlocks } from '../etl/etlPastBlocks'
 import { etlStatus } from '../etl/etlStatus'
 import { etlValidators } from '../etl/etlValidators'
@@ -24,7 +24,7 @@ export class EtlService {
     this.status = 'starting'
     logger.info('EtlService starting.')
 
-    this.disposers.add(etlNewBlocks(this, this.esService).disposer)
+    this.disposers.add(etlNewestBlock(this, this.esService).disposer)
     this.scheduleUpdatePastData()
 
     this.status = 'running'

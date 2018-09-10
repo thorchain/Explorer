@@ -10,4 +10,12 @@ export class ElasticSearchService {
       // log: 'trace',
     })
   }
+
+  public bulk (body: any) {
+    return new Promise((resolve, reject) =>
+      this.client.bulk(body, (err, res) => {
+        if (err) { reject(err) } else { resolve(res) }
+      }),
+    )
+  }
 }

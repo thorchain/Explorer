@@ -1,5 +1,6 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { cache } from '../cache/cache'
 import { calcBase64ByteSize } from '../helpers/calcBase64ByteSize'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
@@ -8,32 +9,40 @@ import { IRpcBlock, IRpcBlockResults } from '../interfaces/tendermintRpc'
 import { ILcdDecodedTx } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
-import { logger } from '../services/logger'
 import { ParallelPromiseLimiter } from '../services/ParallelPromiseLimiter'
-import { extract as extractBlockResults } from './etlBlockResults'
+import { extract as extractBlockResults, transformBlockResults } from './etlBlockResults'
 
 const promisedExec = promisify(exec)
 
-export async function etlBlock (etlService: EtlService, esService: ElasticSearchService, height: number) {
-  const extracted = await extract(height)
-  const transformed = await transform(extracted)
+export async function etlBlock (etlService: EtlService, esService: ElasticSearchService, wantendHeight: number | null) {
+  const extracted = await extract(wantendHeight)
+  const height = parseInt(extracted.header.height, 10)
+
+  if (height === cache.latestBlockHeight) {
+    // we have already seen that block - no need to transform or process it again
+    return height
+  }
+
+  const transformed = await transform(extracted, height)
   await load(etlService, esService, transformed)
+
+  return height
 }
 
-async function extract (height: number): Promise<IRpcBlock> {
+async function extract (height: number | null): Promise<IRpcBlock> {
   const { result }: { result: { block: IRpcBlock } } =
-    await http.get(env.TENDERMINT_RPC_REST + `/block?height=${height}`)
+    await http.get(env.TENDERMINT_RPC_REST + `/block` + (height ? `?height=${height}` : ''))
 
   return result.block
 }
 
-export async function transform (block: IRpcBlock): Promise<ITransformedBlock> {
+export async function transform (block: IRpcBlock, height: number): Promise<ITransformedBlock> {
   const result: ITransformedBlock = {
     addresses: new Set<string>(),
     block: {
       amountTransacted: 0,
       amountTransactedClp: 0,
-      height: parseInt(block.header.height, 10),
+      height,
       numClpTxs: 0,
       numTxs: parseInt(block.header.num_txs, 10),
       size: block.data.txs ? block.data.txs.map(calcBase64ByteSize).reduce((sum, size) => sum + size, 0) : 0,
@@ -42,18 +51,18 @@ export async function transform (block: IRpcBlock): Promise<ITransformedBlock> {
     recentTxs: [],
   }
 
-  const cache: ITransformCache = { blockResults: null, amountTransacted: new Map<string, number>() }
+  const blockCache: ITransformCache = { blockResults: null, amountTransacted: new Map<string, number>() }
 
   if (block.data.txs) {
     const limiter = new ParallelPromiseLimiter(10)
 
     for (let i = 0; i < block.data.txs.length; i++) {
-      await limiter.push(() => transformTx(result, cache)(block.data.txs![i], i))
+      await limiter.push(() => transformTx(result, blockCache)(block.data.txs![i], i))
     }
   }
 
   // convert and add other currencies than RUNE of amountTransacted map to block
-  for (const [denom, amount] of cache.amountTransacted) {
+  for (const [denom, amount] of blockCache.amountTransacted) {
     if (denom === 'RUNE') {
       result.block.amountTransacted += amount
       continue
@@ -84,17 +93,10 @@ export async function load(etlService: EtlService, esService: ElasticSearchServi
     bulkBody.push(recentTx)
   }))
 
-  await esService.client.bulk({ body: bulkBody }, (err, res) => {
-    if (err) {
-      logger.warn('Unexpected block etl bulk insert error, will restart etl service', err)
-      // restart etl service
-      etlService.stop()
-      etlService.start()
-    }
-  })
+  await esService.bulk({ body: bulkBody })
 }
 
-const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
+const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
   async (tx: string, index: number): Promise<void> => {
 
   // put recentTxs into result first, so order is maintained
@@ -106,27 +108,26 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
     let stderr
     ({ stdout: decodedTx, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`))
     if (stderr) {
-      console.error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${stderr}`)
-      return
+      throw new Error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${stderr}`)
     }
   } catch (e) {
-    console.error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
-    return
+    throw new Error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
   }
 
   let parsedTx: ILcdDecodedTx
   try {
     parsedTx = JSON.parse(decodedTx)
   } catch (e) {
-    console.error(`Cound not parse tx ${index} in block ${result.block.height}: "${decodedTx}", got error: ${e}`)
-    return
+    throw new Error(`Cound not parse tx ${index} in block ${result.block.height}: "${decodedTx}", got error: ${e}`)
   }
 
   if (parsedTx.type === 'auth/StdTx') {
     for (const msg of parsedTx.value.msg) {
       if (msg.type === 'cosmos-sdk/Send') {
         // input coins are enough for total transacted, output must match input
-        msg.value.inputs.forEach(i => { i.coins.forEach(c => cache.amountTransacted[c.denom] += Number(c.amount)) })
+        msg.value.inputs.forEach(i => {
+          i.coins.forEach(c => blockCache.amountTransacted[c.denom] += Number(c.amount))
+        })
         // output addresses is enough, every address needs to have been the output of another before
         msg.value.outputs.forEach(o => result.addresses.add(o.address))
 
@@ -148,39 +149,30 @@ const transformTx = (result: ITransformedBlock, cache: ITransformCache) =>
         result.block.numClpTxs++
 
         // get to amount and rune transacted
-        if (cache.blockResults === null) {
-          cache.blockResults = await extractBlockResults(result.block.height)
+        if (blockCache.blockResults === null) {
+          blockCache.blockResults = await extractBlockResults(result.block.height)
         }
 
-        const transformedBlockResults = await transformBlockResults(result, cache.blockResults, index)
+        try {
+          const transformedBlockResults = await transformBlockResults(result, blockCache.blockResults, index)
 
-        result.block.amountTransactedClp += transformedBlockResults.runeTransacted
+          result.block.amountTransactedClp += transformedBlockResults.runeTransacted
 
-        recentTxs.push({
-          from: msg.value.Sender,
-          from_coins: { amount: msg.value.FromAmount, denom: msg.value.FromTicker },
-          height: result.block.height,
-          time: result.block.time,
-          to: msg.value.Sender,
-          to_coins: { amount: `${transformedBlockResults.toTokenReceived}`, denom: msg.value.ToTicker },
-          type: 'CLP',
-        } as IStoredRecentTx)
+          recentTxs.push({
+            from: msg.value.Sender,
+            from_coins: { amount: msg.value.FromAmount, denom: msg.value.FromTicker },
+            height: result.block.height,
+            time: result.block.time,
+            to: msg.value.Sender,
+            to_coins: { amount: `${transformedBlockResults.toTokenReceived}`, denom: msg.value.ToTicker },
+            type: 'CLP',
+          } as IStoredRecentTx)
+        } catch (e) {
+          // TODO remove try/catch block as soon as the following issue is resolved:
+          // https://github.com/thorchain/THORChain/issues/29
+        }
       }
     }
-  }
-}
-
-function transformBlockResults (result: ITransformedBlock, blockResults: IRpcBlockResults, index: number):
-  ITransformedBlockResultsMsg {
-  const log = blockResults.results.DeliverTx[index].log
-  if (!log) { return { fromTokenSpent: 0, runeTransacted: 0, toTokenReceived: 0 } }
-  try {
-    const logJSON = JSON.parse(log.split('json')[1]) as ITransformedBlockResultsMsg
-    return logJSON
-  } catch (e) {
-    console.error(`Cound not parse block result msg for tx ${index} in block ${result.block.height}: ${log}, `
-      + `got error: ${e}`)
-    throw e
   }
 }
 
@@ -189,14 +181,8 @@ interface ITransformCache {
   amountTransacted: Map<string, number>,
 }
 
-interface ITransformedBlock {
+export interface ITransformedBlock {
   addresses: Set<string>
   block: IStoredBlock
   recentTxs: IStoredRecentTx[][]
-}
-
-interface ITransformedBlockResultsMsg {
-  fromTokenSpent: number,
-  runeTransacted: number,
-  toTokenReceived: number,
 }

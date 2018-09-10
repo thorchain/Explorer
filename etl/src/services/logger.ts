@@ -2,7 +2,7 @@ import * as winston from 'winston'
 
 export const logger = winston.createLogger({
   format: winston.format.json(),
-  level: 'info',
+  level: 'debug',
   transports: [
     //
     // - Write to all logs with level `info` and below to `combined.log`

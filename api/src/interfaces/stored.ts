@@ -1,12 +1,9 @@
-import { IRpcCoin } from './tendermintRpc'
-
 export interface IStoredGenesis {
   genesisTime: string,
   inflation: number,
 }
 
 export interface IStoredStatus {
-  blockHeight: number,
   chainId: string,
 }
 
@@ -32,7 +29,12 @@ export interface IStoredRecentTx {
   type: 'Tx' | 'CLP'
   from: string
   to: string
-  from_coins: IRpcCoin,
-  to_coins?: IRpcCoin,
+  from_coins: IStoredCoin,
+  to_coins?: IStoredCoin,
   time: string,
+}
+
+export interface IStoredCoin {
+  denom: string,
+  amount: string,
 }
