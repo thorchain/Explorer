@@ -11,12 +11,23 @@
     - debug_binary: "../../../THORChain/build/thorchaindebug"
 
   tasks:
-    - name: Delete node modules (must be rebuilt from scratch)
+    - name: Delete etl node modules (must be rebuilt from scratch)
+      file:
+        path: "{{app_root_directory}}/etl/node_modules"
+        state: absent
+
+    - name: Delete api node modules (must be rebuilt from scratch)
       file:
         path: "{{app_root_directory}}/api/node_modules"
         state: absent
 
-    - name: Ensure that app directory exists
+    - name: Ensure that etl directory exists
+      file:
+        path: "{{app_root_directory}}/etl/node_modules"
+        state: directory
+        mode: 0755
+
+    - name: Ensure that api directory exists
       file:
         path: "{{app_root_directory}}/api/node_modules"
         state: directory
@@ -24,6 +35,22 @@
 
     - name: Ship files to server
       synchronize:
+        src: ../../etl/build
+        dest: "{{app_root_directory}}/etl"
+        rsync_opts:
+          - "--exclude=*.map"
+        recursive: yes
+        delete: yes
+    - synchronize:
+        src: ../../etl/package.json
+        dest: "{{app_root_directory}}/etl"
+    - synchronize:
+        src: ../../etl/yarn.lock
+        dest: "{{app_root_directory}}/etl"
+    - synchronize:
+        src: ../../etl/.env.production.local
+        dest: "{{app_root_directory}}/etl/.env"
+    - synchronize:
         src: ../../api/build
         dest: "{{app_root_directory}}/api"
         rsync_opts:
@@ -70,7 +97,13 @@
         mode: u=rwX,g=rX,o=rX
         recurse: yes
 
-    - name: Install yarn dependencies
+    - name: Install yarn dependencies of etl
+      become: no
+      command: "yarn"
+      args:
+        chdir: "{{app_root_directory}}/etl"
+
+    - name: Install yarn dependencies of api
       become: no
       command: "yarn"
       args:
@@ -83,17 +116,27 @@
         enabled: yes
 
     - name: "Check list of Node.js apps running."
-      command: "{{app_root_directory}}/api/node_modules/.bin/forever list"
+      command: "{{app_root_directory}}/etl/node_modules/.bin/forever list"
       register: forever_list
       become: no
       changed_when: false
 
-    - name: "Stop node.js app."
+    - name: "Stop etl"
+      become: no
+      command: "{{app_root_directory}}/etl/node_modules/.bin/forever stop {{app_root_directory}}/etl/build/index.js"
+      when: "forever_list.stdout.find('/etl/build/index.js') != -1"
+      ignore_errors: yes
+
+    - name: "Start etl"
+      become: no
+      command: "{{app_root_directory}}/etl/node_modules/.bin/forever start {{app_root_directory}}/etl/build/index.js"
+
+    - name: "Stop api"
       become: no
       command: "{{app_root_directory}}/api/node_modules/.bin/forever stop {{app_root_directory}}/api/build/index.js"
       when: "forever_list.stdout.find('/api/build/index.js') != -1"
       ignore_errors: yes
 
-    - name: "Start node.js app."
+    - name: "Start api"
       become: no
       command: "{{app_root_directory}}/api/node_modules/.bin/forever start {{app_root_directory}}/api/build/index.js"

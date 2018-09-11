@@ -22,6 +22,7 @@ app.get('/api/metrics', async (req, res) => {
   try {
     res.send(await getAllMetrics(esService))
   } catch (e) {
+    logger.error(e)
     res.sendStatus(500)
   }
 })
@@ -31,6 +32,7 @@ app.get('/api/recent-txs', async (req, res) => {
   try {
     res.send(await getRecentTxsMetrics(esService, size))
   } catch (e) {
+    logger.error(e)
     res.sendStatus(500)
   }
 })
