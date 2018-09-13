@@ -1,0 +1,4 @@
+---
+- name: restart thorchaintxdecodingserver
+  service: name=thorchaintxdecodingserver state=restarted
+  become: yes

@@ -67,3 +67,4 @@
     - certbot
     - node
     - thorchainlcd
+    - thorchaintxdecodingserver

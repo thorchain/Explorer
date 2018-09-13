@@ -83,11 +83,14 @@
         mode: 0755
       notify: restart thorchainlcd
 
+    - import_tasks: roles/thorchaintxdecodingserver/handlers/main.yml
+
     - name: Copy debug binary
       copy:
         src: "{{debug_binary}}"
         dest: /usr/bin
         mode: 0755
+      notify: restart thorchaintxdecodingserver
 
     - name: Ensure user has read and write access on all files
       file:
@@ -112,6 +115,12 @@
     - name: Start thorchain LCD service
       service:
         name: thorchainlcd
+        state: started
+        enabled: yes
+
+    - name: Start thorchain tx decoding server service
+      service:
+        name: thorchaintxdecodingserver
         state: started
         enabled: yes
 
