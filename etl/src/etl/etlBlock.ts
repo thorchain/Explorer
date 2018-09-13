@@ -12,8 +12,6 @@ import { logger } from '../services/logger'
 import { ParallelPromiseLimiter } from '../services/ParallelPromiseLimiter'
 import { extractBlockResults, transformBlockResults } from './etlBlockResults'
 
-const limiter = new ParallelPromiseLimiter(1000)
-
 export async function etlBlock (etlService: EtlService, esService: ElasticSearchService, wantendHeight: number | null) {
   logger.debug('Will etl block ' + wantendHeight)
   const extracted = await extract(wantendHeight)
@@ -55,11 +53,15 @@ export async function transform (block: IRpcBlock, height: number): Promise<ITra
   const blockCache: ITransformCache =
     { blockResultsPromise: null, blockResults: null, amountTransacted: new Map<string, number>() }
 
+  const limiter = new ParallelPromiseLimiter(100)
+
   if (block.data.txs) {
     for (let i = 0; i < block.data.txs.length; i++) {
       await limiter.push(() => transformTx(result, blockCache)(block.data.txs![i], i))
     }
   }
+
+  await limiter.wait()
 
   // convert and add other currencies than RUNE of amountTransacted map to block
   for (const [denom, amount] of blockCache.amountTransacted) {

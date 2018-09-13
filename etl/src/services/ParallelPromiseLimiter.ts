@@ -17,6 +17,10 @@ export class ParallelPromiseLimiter {
     this.track(promiseFn)
   }
 
+  public wait () {
+    return Promise.all(this.promises)
+  }
+
   private async blockUntilUnderLimit () {
     if (this.promises.size >= this.limit) {
       // logger.debug(`ParallelPromiseLimiter will block, promise size: ${this.promises.size}, limit: ${this.limit}`)
