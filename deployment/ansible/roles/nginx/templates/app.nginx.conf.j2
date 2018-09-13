@@ -1,0 +1,92 @@
+# Redirect http to https
+server {
+  listen 80;
+  server_name {{ domain }} www.{{ domain }};
+
+  # forward all traffic from HTTP to HTTPS
+  location / {
+    return 301 https://{{ domain }}$request_uri;
+  }
+
+  # Rule for legitimate ACME Challenge requests (like /.well-known/acme-challenge/xxxxxxxxx)
+  # We use ^~ here, so that we don't check other regexes (for speed-up). We actually MUST cancel
+  # other regex checks, because in our other config files have regex rule that denies access to files with dotted names.
+  location ^~ /.well-known/acme-challenge/ {
+
+    # Set correct content type. According to this:
+    # https://community.letsencrypt.org/t/using-the-webroot-domain-verification-method/1445/29
+    # Current specification requires "text/plain" or no content header at all.
+    # It seems that "text/plain" is a safe option.
+    default_type "text/plain";
+
+    # This directory must be the same as in /etc/letsencrypt/cli.ini
+    # as "webroot-path" parameter. Also don't forget to set "authenticator" parameter
+    # there to "webroot".
+    # Do NOT use alias, use root! Target directory is located here:
+    # /var/www/common/letsencrypt/.well-known/acme-challenge/
+    root {{ certbot_webroot }};
+  }
+}
+
+# Redirect www
+server {
+  listen 443 ssl;
+  server_name www.{{ domain }};
+
+  # SSL
+  ssl_certificate /etc/nginx/ssl/{{ domain }}/fullchain.pem;
+  ssl_certificate_key /etc/nginx/ssl/{{ domain }}/privkey.pem;
+
+  location / {
+    return 301 https://{{ domain }}$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl;
+  server_name {{ domain }};
+  root {{ app_root_directory }}/gui/build;
+
+  # SSL
+  ssl_certificate /etc/nginx/ssl/{{ domain }}/fullchain.pem;
+  ssl_certificate_key /etc/nginx/ssl/{{ domain }}/privkey.pem;
+
+  # Compression
+  gzip              on;
+  gzip_buffers      256 8k;
+  gzip_min_length   512;
+  gzip_comp_level   6;
+  gzip_http_version 1.0;
+  gzip_types        text/plain text/html text/css application/x-javascript text/javascript application/javascript application/json text/x-js text/xml application/xml application/xml+rss;
+  gzip_vary         on;
+  gzip_disable      "msie6";
+
+  # static resources
+  # Since we use hashes in the filenames of all resources, we can cache them unlimited.
+  # The ?: prefix is a 'non-capturing' mark, meaning we do not require
+  # the pattern to be captured into $1 which should help improve performance
+  location ~* \.(?:css|js|map|jpg|jpeg|gif|png|ico|xml|eot|woff|woff2|ttf|svg|otf|pdf|json)$ {
+    include helpers/doCache.nginx.conf;
+  }
+
+  location / {
+    try_files /index.html =404;
+    include helpers/doNotCache.nginx.conf;
+  }
+
+  location /api {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-NginX-Proxy true;
+
+    proxy_pass http://api-http;
+    proxy_redirect off;
+  }
+}
+
+# proxy for api (ssl only)
+upstream api-http {
+  server 127.0.0.1:{{ app_express_port }};
+  keepalive 8;
+}

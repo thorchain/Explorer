@@ -1,0 +1,13 @@
+---
+# Certbot auto-renew cron job configuration (for certificate renewals).
+certbot_auto_renew: true
+certbot_auto_renew_user: "{{ ansible_user }}"
+certbot_auto_renew_hour: 3
+certbot_auto_renew_minute: 30
+
+# Certbot settings
+certbot_email: "webmaster@example.com"
+certbot_domains:
+  - "{{ inventory_hostname }}"
+certbot_renewal_command_args: '--renew-hook "systemctl restart nginx"'
+certbot_webroot: "/srv/certbot"

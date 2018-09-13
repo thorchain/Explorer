@@ -1,0 +1,70 @@
+---
+- hosts: eip
+  gather_facts: yes
+  remote_user: ec2-user
+  become: yes
+  any_errors_fatal: true
+
+  vars:
+    # app
+    - app_express_port: 3001
+    - app_root_directory: "/srv/app"
+    - domain: "thorchain.info"
+
+    # Certbot
+    - certbot_email: "hostmaster@thorchain.info"
+    - certbot_domains:
+      - "thorchain.info"
+      - "www.thorchain.info"
+
+    # Nodejs
+    - nodejs_version: "8.x"
+    - nodejs_npm_global_packages:
+      - name: yarn
+
+  pre_tasks:
+    - name: Create app etl root directory
+      file: path={{ app_root_directory }}/etl state=directory recurse=yes
+
+    - name: Create app api root directory
+      file: path={{ app_root_directory }}/api state=directory recurse=yes
+
+    - name: Create app gui root directory
+      file: path={{ app_root_directory }}/gui state=directory recurse=yes
+
+    - name: "Ensure that etl is automatically launched at system startup: Creates an entry like @reboot /some/job.sh"
+      cron: name="start nodejs module at reboot" special_time=reboot job="{{app_root_directory}}/etl/node_modules/.bin/forever start {{app_root_directory}}/etl/build/index.js"
+      become: no
+
+    - name: "Ensure that api is automatically launched at system startup: Creates an entry like @reboot /some/job.sh"
+      cron: name="start nodejs module at reboot" special_time=reboot job="{{app_root_directory}}/api/node_modules/.bin/forever start {{app_root_directory}}/api/build/index.js"
+      become: no
+
+    - name: Append etl node modules to path in .bashrc
+      lineinfile: dest=~/.bashrc line='export PATH=$PATH:{{ app_root_directory }}/etl/node_modules/.bin'
+      become: no
+
+    - name: Append api node modules to path in .bashrc
+      lineinfile: dest=~/.bashrc line='export PATH=$PATH:{{ app_root_directory }}/api/node_modules/.bin'
+      become: no
+
+    - name: Increase ulimit for open files, since block processing creates a lot of requests to thorchaindebug
+      pam_limits:
+        domain: ec2-user
+        limit_type: '-'
+        limit_item: nofile
+        value: 64000
+
+    - name: Increase ulimit for processes, since block processing creates a lot of requests to thorchaindebug
+      pam_limits:
+        domain: ec2-user
+        limit_type: '-'
+        limit_item: nproc
+        value: 16384
+
+  roles:
+    - nginx
+    - certbot
+    - node
+    - thorchainlcd
+    - thorchaintxdecodingserver

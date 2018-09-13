@@ -3,7 +3,7 @@
 ## Development
 
 ```sh
-yarn start
+REACT_APP_API_HOST="http://localhost:3001/api" yarn start
 ```
 
 ## Testing
@@ -15,5 +15,5 @@ yarn test
 ## Building for production
 
 ```sh
-yarn run build
+REACT_APP_API_HOST="https://thorchain.info/api" yarn run build
 ```

@@ -4,7 +4,7 @@
 
 1. Install dependencies: `yarn`
 1. Copy and adjust the .env file: `cp .env.example .env`
-1. Start a local ElasticSearch instance, e. g. using Docker: `docker-compose up" docker.elastic.co/elasticsearch/elasticsearch:6.4.0`
+1. Start a local ElasticSearch instance, e. g. using Docker Compose: `cd ../etl && docker-compose up`
 1. Start the API: `yarn start`
 
 ### Debug
@@ -22,3 +22,11 @@ http://localhost:5601
 ## Building for production
 
 `yarn run build`
+
+## Deployment
+
+Requirements
+
+* ElasticSearch
+* Installed thorchaindebug
+* Running thorchaincli

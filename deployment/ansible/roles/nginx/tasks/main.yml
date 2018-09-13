@@ -1,0 +1,34 @@
+---
+- name: Install Nginx
+  command: "amazon-linux-extras install nginx1.12"
+
+- name: Create SSL certificate directory if not exists
+  file: path=/etc/nginx/ssl/{{ domain }} state=directory recurse=yes
+
+- name: create self-signed SSL cert if no cert exists
+  command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/CN={{ domain }}" -keyout /etc/nginx/ssl/{{ domain }}/privkey.pem -out /etc/nginx/ssl/{{ domain }}/fullchain.pem creates=/etc/nginx/ssl/{{ domain }}/fullchain.pem
+  notify: restart nginx
+
+- name: Add Nginx helpers
+  copy:
+    src: "{{ role_path }}/templates/helpers"
+    dest: "/etc/nginx/"
+    force: true
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx
+
+- name: Add Nginx virtualhost for app
+  template:
+    src: "templates/app.nginx.conf.j2"
+    dest: "/etc/nginx/conf.d/app.nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx
+
+- name: Start Nginx
+  service: "name={{ item }} state=started enabled=yes"
+  with_items:
+    - nginx

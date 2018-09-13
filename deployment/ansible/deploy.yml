@@ -1,0 +1,151 @@
+---
+- hosts: eip
+  gather_facts: yes
+  remote_user: ec2-user
+  become: yes
+  any_errors_fatal: true
+
+  vars:
+    - app_root_directory: "/srv/app"
+    - cli_binary: "../../../THORChain/build/thorchaincli"
+    - debug_binary: "../../../THORChain/build/thorchaindebug"
+
+  tasks:
+    - name: Delete etl node modules (must be rebuilt from scratch)
+      file:
+        path: "{{app_root_directory}}/etl/node_modules"
+        state: absent
+
+    - name: Delete api node modules (must be rebuilt from scratch)
+      file:
+        path: "{{app_root_directory}}/api/node_modules"
+        state: absent
+
+    - name: Ensure that etl directory exists
+      file:
+        path: "{{app_root_directory}}/etl/node_modules"
+        state: directory
+        mode: 0755
+
+    - name: Ensure that api directory exists
+      file:
+        path: "{{app_root_directory}}/api/node_modules"
+        state: directory
+        mode: 0755
+
+    - name: Ship files to server
+      synchronize:
+        src: ../../etl/build
+        dest: "{{app_root_directory}}/etl"
+        rsync_opts:
+          - "--exclude=*.map"
+        recursive: yes
+        delete: yes
+    - synchronize:
+        src: ../../etl/package.json
+        dest: "{{app_root_directory}}/etl"
+    - synchronize:
+        src: ../../etl/yarn.lock
+        dest: "{{app_root_directory}}/etl"
+    - synchronize:
+        src: ../../etl/.env.production.local
+        dest: "{{app_root_directory}}/etl/.env"
+    - synchronize:
+        src: ../../api/build
+        dest: "{{app_root_directory}}/api"
+        rsync_opts:
+          - "--exclude=*.map"
+        recursive: yes
+        delete: yes
+    - synchronize:
+        src: ../../api/package.json
+        dest: "{{app_root_directory}}/api"
+    - synchronize:
+        src: ../../api/yarn.lock
+        dest: "{{app_root_directory}}/api"
+    - synchronize:
+        src: ../../api/.env.production.local
+        dest: "{{app_root_directory}}/api/.env"
+    - synchronize:
+        src: ../../gui/build
+        dest: "{{app_root_directory}}/gui"
+        rsync_opts:
+          - "--exclude=*.map"
+        recursive: yes
+        delete: yes
+
+    - import_tasks: roles/thorchainlcd/handlers/main.yml
+
+    - name: Copy cli binary
+      copy:
+        src: "{{cli_binary}}"
+        dest: /usr/bin
+        mode: 0755
+      notify: restart thorchainlcd
+
+    - import_tasks: roles/thorchaintxdecodingserver/handlers/main.yml
+
+    - name: Copy debug binary
+      copy:
+        src: "{{debug_binary}}"
+        dest: /usr/bin
+        mode: 0755
+      notify: restart thorchaintxdecodingserver
+
+    - name: Ensure user has read and write access on all files
+      file:
+        path: "{{app_root_directory}}"
+        owner: ec2-user
+        group: ec2-user
+        mode: u=rwX,g=rX,o=rX
+        recurse: yes
+
+    - name: Install yarn dependencies of etl
+      become: no
+      command: "yarn"
+      args:
+        chdir: "{{app_root_directory}}/etl"
+
+    - name: Install yarn dependencies of api
+      become: no
+      command: "yarn"
+      args:
+        chdir: "{{app_root_directory}}/api"
+
+    - name: Start thorchain LCD service
+      service:
+        name: thorchainlcd
+        state: started
+        enabled: yes
+
+    - name: Start thorchain tx decoding server service
+      service:
+        name: thorchaintxdecodingserver
+        state: started
+        enabled: yes
+
+    - name: "Check list of Node.js apps running."
+      command: "{{app_root_directory}}/etl/node_modules/.bin/forever list"
+      register: forever_list
+      become: no
+      changed_when: false
+
+    - name: "Stop etl"
+      become: no
+      command: "{{app_root_directory}}/etl/node_modules/.bin/forever stop {{app_root_directory}}/etl/build/index.js"
+      when: "forever_list.stdout.find('/etl/build/index.js') != -1"
+      ignore_errors: yes
+
+    - name: "Start etl"
+      become: no
+      command: "{{app_root_directory}}/etl/node_modules/.bin/forever start {{app_root_directory}}/etl/build/index.js"
+
+    - name: "Stop api"
+      become: no
+      command: "{{app_root_directory}}/api/node_modules/.bin/forever stop {{app_root_directory}}/api/build/index.js"
+      when: "forever_list.stdout.find('/api/build/index.js') != -1"
+      ignore_errors: yes
+
+    - name: "Start api"
+      become: no
+      command: "{{app_root_directory}}/api/node_modules/.bin/forever start {{app_root_directory}}/api/build/index.js"
