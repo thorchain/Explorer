@@ -39,10 +39,10 @@ async function doEtlNewestBlock (
         cache.earliestBlockHeightCheckedInDatabase = cache.latestBlockHeight
       }
 
-      await sleep(200)
+      await sleep(500)
     } catch (e) {
       logger.error('Unexpected new block etl error', e)
-      await sleep(200)
+      await sleep(500)
     }
   }
 }

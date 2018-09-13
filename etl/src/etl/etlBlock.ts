@@ -1,7 +1,6 @@
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import { cache } from '../cache/cache'
 import { calcBase64ByteSize } from '../helpers/calcBase64ByteSize'
+import { decodeTx } from '../helpers/decodeTx'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { IStoredBlock, IStoredRecentTx } from '../interfaces/stored'
@@ -13,7 +12,7 @@ import { logger } from '../services/logger'
 import { ParallelPromiseLimiter } from '../services/ParallelPromiseLimiter'
 import { extractBlockResults, transformBlockResults } from './etlBlockResults'
 
-const promisedExecFile = promisify(execFile)
+const limiter = new ParallelPromiseLimiter(1000)
 
 export async function etlBlock (etlService: EtlService, esService: ElasticSearchService, wantendHeight: number | null) {
   logger.debug('Will etl block ' + wantendHeight)
@@ -57,8 +56,6 @@ export async function transform (block: IRpcBlock, height: number): Promise<ITra
     { blockResultsPromise: null, blockResults: null, amountTransacted: new Map<string, number>() }
 
   if (block.data.txs) {
-    const limiter = new ParallelPromiseLimiter(100)
-
     for (let i = 0; i < block.data.txs.length; i++) {
       await limiter.push(() => transformTx(result, blockCache)(block.data.txs![i], i))
     }
@@ -108,11 +105,7 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
 
   let decodedTx: string
   try {
-    let stderr
-    ({ stdout: decodedTx, stderr } = await promisedExecFile('thorchaindebug', ['tx', tx]))
-    if (stderr) {
-      throw new Error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${stderr}`)
-    }
+    decodedTx = await decodeTx(tx)
   } catch (e) {
     throw new Error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${e}`)
   }
