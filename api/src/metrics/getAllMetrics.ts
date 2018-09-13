@@ -54,7 +54,7 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
       inflation: null, // TODO
       networkSecurityInMUsd: null, // TODO
       queuedStake: null, // TODO
-      stakeLevel: totalStakedByValidators / totalStaked,
+      stakeLevel: totalStaked / 1000000000, // TODO
       totalBlockRewards: null, // TODO
       totalStaked,
       totalStakedByValidators,
