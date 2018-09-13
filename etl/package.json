@@ -30,7 +30,8 @@
     "start": "ts-node ./src/index.ts",
     "debug": "npm-run-all build debug-build",
     "debug-build": "node --trace-warnings --inspect ./build/index.js",
-    "test": "jest"
+    "test": "jest",
+    "test-watch": "jest --watch"
   },
   "jest": {
     "transform": {

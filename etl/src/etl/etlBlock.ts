@@ -1,4 +1,4 @@
-import { exec } from 'child_process'
+import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { cache } from '../cache/cache'
 import { calcBase64ByteSize } from '../helpers/calcBase64ByteSize'
@@ -9,12 +9,14 @@ import { IRpcBlock, IRpcBlockResults } from '../interfaces/tendermintRpc'
 import { ILcdDecodedTx } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
+import { logger } from '../services/logger'
 import { ParallelPromiseLimiter } from '../services/ParallelPromiseLimiter'
-import { extract as extractBlockResults, transformBlockResults } from './etlBlockResults'
+import { extractBlockResults, transformBlockResults } from './etlBlockResults'
 
-const promisedExec = promisify(exec)
+const promisedExecFile = promisify(execFile)
 
 export async function etlBlock (etlService: EtlService, esService: ElasticSearchService, wantendHeight: number | null) {
+  logger.debug('Will etl block ' + wantendHeight)
   const extracted = await extract(wantendHeight)
   const height = parseInt(extracted.header.height, 10)
 
@@ -51,10 +53,11 @@ export async function transform (block: IRpcBlock, height: number): Promise<ITra
     recentTxs: [],
   }
 
-  const blockCache: ITransformCache = { blockResults: null, amountTransacted: new Map<string, number>() }
+  const blockCache: ITransformCache =
+    { blockResultsPromise: null, blockResults: null, amountTransacted: new Map<string, number>() }
 
   if (block.data.txs) {
-    const limiter = new ParallelPromiseLimiter(10)
+    const limiter = new ParallelPromiseLimiter(100)
 
     for (let i = 0; i < block.data.txs.length; i++) {
       await limiter.push(() => transformTx(result, blockCache)(block.data.txs![i], i))
@@ -106,7 +109,7 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
   let decodedTx: string
   try {
     let stderr
-    ({ stdout: decodedTx, stderr } = await promisedExec(`thorchaindebug tx "${tx}"`))
+    ({ stdout: decodedTx, stderr } = await promisedExecFile('thorchaindebug', ['tx', tx]))
     if (stderr) {
       throw new Error(`Cound not decode tx ${index} in block ${result.block.height}: ${tx}, got error: ${stderr}`)
     }
@@ -149,12 +152,20 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
         result.block.numClpTxs++
 
         // get to amount and rune transacted
-        if (blockCache.blockResults === null) {
-          blockCache.blockResults = await extractBlockResults(result.block.height)
+        if (blockCache.blockResultsPromise === null) {
+          blockCache.blockResultsPromise = extractBlockResults(result.block.height)
         }
 
         try {
-          const transformedBlockResults = await transformBlockResults(result, blockCache.blockResults, index)
+          blockCache.blockResults = await blockCache.blockResultsPromise
+        } catch (e) {
+          logger.error(`Could not receive block results for block ${result.block.height}, error:`, e)
+        }
+
+        if (blockCache.blockResults === null) { continue }
+
+        try {
+          const transformedBlockResults = await transformBlockResults(result, blockCache.blockResults!, index)
 
           result.block.amountTransactedClp += transformedBlockResults.runeTransacted
 
@@ -177,6 +188,7 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
 }
 
 interface ITransformCache {
+  blockResultsPromise: null | Promise<IRpcBlockResults>,
   blockResults: null | IRpcBlockResults,
   amountTransacted: Map<string, number>,
 }

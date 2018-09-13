@@ -29,11 +29,7 @@ export function etlPastBlocks (etlService: EtlService, esService: ElasticSearchS
 async function doEtlPastBlocks (
   etlService: EtlService, esService: ElasticSearchService, state: { cancelled: boolean },
 ) {
-  const limiter = new ParallelPromiseLimiter(100)
-
-  function onError(e: Error) {
-    logger.error('Unexpected blocks to etl for database error, will retry', e)
-  }
+  const limiter = new ParallelPromiseLimiter(1)
 
   while (true) {
     if (state.cancelled) { return }
@@ -43,22 +39,21 @@ async function doEtlPastBlocks (
       logger.debug('Found blocks to etl in cache, get block at height ' + height)
       await limiter.push(() => etlBlock(etlService, esService, height).catch((e) => {
         logger.error('Unexpected blocks to etl from cache error, will add the block back to cache', e)
-        cache.blocksToEtl.push(height)
+        cache.blocksToEtl.unshift(height)
+      }))
+    } else if (cache.blocksToCheck.length > 0) {
+      const height = cache.blocksToCheck.pop()!
+      logger.debug('No blocks to etl in cache, check if past block exists in db at height ' + height)
+      await limiter.push(() => doesBlockExist(esService, height).then(blockExists => {
+        if (blockExists) { return }
+        logger.debug(`Does not yet exist in db at height ${height}, schedule etl`)
+        cache.blocksToEtl.unshift(height)
+      }).catch((e) => {
+        logger.error('Could not check whether block exists, will retry after 200 ms', e)
+        cache.blocksToCheck.unshift(height)
       }))
     } else if (cache.earliestBlockHeightCheckedInDatabase !== null && cache.earliestBlockHeightCheckedInDatabase > 1) {
-      const height = cache.earliestBlockHeightCheckedInDatabase - 1
-      logger.debug('No blocks to etl in cache, check if past block exists in db at height ' + height)
-      try {
-        const blockExists = await doesBlockExist(esService, height)
-        if (blockExists) { continue }
-      } catch (e) {
-        logger.error('Could not check whether block exists, will retry after 500 ms', e)
-        await sleep(500)
-        continue
-      }
-      logger.debug(`Does not yet exist in db at height ${height}, schedule etl`)
-      await limiter.push(() => etlBlock(etlService, esService, height).catch(onError))
-      cache.earliestBlockHeightCheckedInDatabase--
+      cache.blocksToCheck.unshift(--cache.earliestBlockHeightCheckedInDatabase)
     } else {
       // nothing to do, sleep a bit and try again
       await sleep(100)
@@ -66,6 +61,6 @@ async function doEtlPastBlocks (
   }
 }
 
-async function doesBlockExist (esService: ElasticSearchService, height: number) {
+async function doesBlockExist (esService: ElasticSearchService, height: number): Promise<boolean> {
   return await esService.client.exists({ index: 'blocks', type: 'type', id: `${height}` })
 }

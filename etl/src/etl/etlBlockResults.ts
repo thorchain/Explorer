@@ -4,11 +4,9 @@ import { IRpcBlockResults } from '../interfaces/tendermintRpc'
 import { logger } from '../services/logger'
 import { ITransformedBlock } from './etlBlock'
 
-export async function extract (height: number): Promise<IRpcBlockResults> {
+export async function extractBlockResults (height: number): Promise<IRpcBlockResults> {
   const { result }: { result: IRpcBlockResults } =
     await http.get(env.TENDERMINT_RPC_REST + `/block_results?height=${height}`)
-
-  // filter out erroneous block results, we are only interested in the data of the successful block results here
 
   return result
 }
