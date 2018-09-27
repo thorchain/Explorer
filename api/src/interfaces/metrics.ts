@@ -69,6 +69,26 @@ export interface IRecentTxMetrics {
   time: string,
 }
 
+export interface ICLP {
+  clp: ICLPDetails,
+  account: ICLPAccount
+}
+
+export interface ICLPDetails {
+  creator: string,
+  ticker: string,
+  name: string,
+  reserveRatio: number,
+  initialSupply: number,
+  currentSupply: number,
+  account_address: string
+}
+
+export interface ICLPAccount {
+  price: number,
+  [key: string]: any,
+}
+
 export interface ICoinMetrics {
   denom: string,
   amount: string,
