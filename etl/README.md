@@ -5,6 +5,8 @@
 1. Install dependencies: `yarn`
 1. Copy and adjust the .env file: `cp .env.example .env`
 1. Start a local ElasticSearch instance, e. g. using Docker Compose: `docker-compose up`
+1. Start a local LCD client: `thorchaincli advanced rest-server --chain-id your-chain-id`
+1. Start a local TX decoding server: `thorchaindebug tx-decoding-server`
 1. Start the API: `yarn start`
 
 ### Debug
