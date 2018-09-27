@@ -7,12 +7,13 @@ import { formatNum } from '../helpers/formatNum'
 import { formatPercent } from '../helpers/formatPercent'
 import { formatVersion } from '../helpers/formatVersion'
 import { http } from '../helpers/http'
-import { IMetrics, IRecentTxMetrics } from '../interfaces/metrics'
+import { ICLP, IMetrics, IRecentTxMetrics } from '../interfaces/metrics'
 import { AppTitle } from './AppTitle'
 import { BifröstButtonContainer } from './Bifr\u00F6stButtonContainer'
 import { BifröstIconContainer } from './BifröstIconContainer'
 import { Button } from './Button'
 import { CapacityGauge } from './CapacityGauge'
+import { CLPs } from './CLPs'
 import { Col } from './Col'
 import { Container } from './Container'
 import { FullWidth } from './FullWidth'
@@ -28,6 +29,7 @@ import { Placeholder } from './Placeholder'
 import { RecentTxs } from './RecentTxs'
 import { Title } from './Title'
 import { TitleLabel } from './TitleLabel'
+import { Tokens } from './Tokens'
 
 @observer
 class App extends React.Component<object, object> {
@@ -35,14 +37,17 @@ class App extends React.Component<object, object> {
     metrics: null | IMetrics
     recentTxs: IRecentTxMetrics[],
     recentTxsSize: number,
-  } = { metrics: null, recentTxs: [], recentTxsSize: 5 }
+    clps: ICLP[],
+  } = { metrics: null, recentTxs: [], recentTxsSize: 5, clps: [] }
   private intervals: NodeJS.Timer[] = []
 
   public async componentWillMount() {
     this.loadMetrics()
     this.loadRecentTxs()
+    this.loadCLPs()
     this.intervals.push(setInterval(this.loadMetrics, 2000))
     this.intervals.push(setInterval(this.loadRecentTxs, 2000))
+    this.intervals.push(setInterval(this.loadCLPs, 2000))
   }
 
   public componentWillUnmount() {
@@ -52,7 +57,7 @@ class App extends React.Component<object, object> {
   public render() {
     if (this.state.metrics === null) { return <Loading /> }
 
-    const { metrics: { network, software, transactions, validators }, recentTxs } = this.state
+    const { metrics: { network, software, transactions, validators }, recentTxs, clps } = this.state
 
     return (
       <Container>
@@ -193,7 +198,7 @@ class App extends React.Component<object, object> {
         </Col>
 
         <Col>
-          <Pane>
+        <Pane>
             <PaneHeader>Transactions</PaneHeader>
 
             <PaneRow>
@@ -244,12 +249,16 @@ class App extends React.Component<object, object> {
               <TitleLabel />
             </PaneRow>
           </Pane>
+          <Tokens clps={clps}/>
         </Col>
 
         <FullWidth>
           <Pane>
+            <PaneHeader>Continuous Liquidity Pools (CLP)</PaneHeader>
+            <CLPs clps={clps} />
+          </Pane>
+          <Pane>
             <PaneHeader>Recent Transactions</PaneHeader>
-
             <RecentTxs txs={recentTxs} />
           </Pane>
         </FullWidth>
@@ -263,6 +272,17 @@ class App extends React.Component<object, object> {
   private loadRecentTxs = async () => this.setState({
     recentTxs: await http.get(env.REACT_APP_API_HOST + `/recent-txs?size=${this.state.recentTxsSize}`),
   })
+
+  private loadCLPs = async () => {
+    let clps
+    try {
+      clps = await http.get(env.LCD_API_HOST + `/clps`)
+    }
+    catch(error) {
+      return
+    }
+    this.setState({ clps })
+  }
 }
 
 export default App

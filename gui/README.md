@@ -3,7 +3,7 @@
 ## Development
 
 ```sh
-REACT_APP_API_HOST="http://localhost:3001/api" yarn start
+REACT_APP_API_HOST="http://localhost:3001/api" LCD_API_HOST="http://localhost:1317/" yarn start
 ```
 
 ## Testing

@@ -1,4 +1,5 @@
 export const env = {
+  LCD_API_HOST: getEnvStr('LCD_API_HOST', 'http://localhost:1317/'),
   REACT_APP_API_HOST: getEnvStr('REACT_APP_API_HOST'),
 }
 
