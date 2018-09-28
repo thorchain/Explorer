@@ -83,6 +83,11 @@ server {
     proxy_pass http://api-http;
     proxy_redirect off;
   }
+
+  location /lcd/ {
+    proxy_pass http://127.0.0.1:1317/; # trailing slash here is important to strip the `/lcd` prefix
+    proxy_redirect off;
+  }
 }
 
 # proxy for api (ssl only)

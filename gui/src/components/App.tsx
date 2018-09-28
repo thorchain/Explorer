@@ -276,7 +276,7 @@ class App extends React.Component<object, object> {
   private loadCLPs = async () => {
     let clps
     try {
-      clps = await http.get(env.LCD_API_HOST + `/clps`)
+      clps = await http.get(env.REACT_APP_LCD_API_HOST + `/clps`)
     }
     catch(error) {
       return
