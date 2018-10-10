@@ -1,6 +1,9 @@
 import * as express from 'express'
+import * as moment from 'moment'
 import { getAllMetrics } from './metrics/getAllMetrics'
 import { getRecentTxsMetrics } from './metrics/getRecentTxsMetrics'
+import { transactionsPerSecond } from './metrics/transactionsPerSecond'
+import { getLastStoredBlocks } from './query/getLastStoredBlocks'
 import { ElasticSearchService } from './services/ElasticSearch'
 import { logger } from './services/logger'
 
@@ -16,6 +19,31 @@ app.use((req, res, next) => {
 
 app.get('/api/status', async (req, res) => {
   res.sendStatus(200)
+})
+
+app.get('/api/status/tps-gte-90', async (req, res) => {
+  const txsPerSec = transactionsPerSecond(await getLastStoredBlocks(esService, 100))
+
+  if (txsPerSec >= 90) {
+    res.status(200).send('TPS over last 100 blocks: ' + txsPerSec)
+  } else {
+    res.status(500).send('TPS over last 100 blocks: ' + txsPerSec)
+  }
+})
+
+app.get('/api/status/last-block-lte-90s', async (req, res) => {
+  const lastBlock = await getLastStoredBlocks(esService, 1)
+
+  if (!lastBlock[0]) {
+    res.status(500).send('No blocks found')
+    return
+  }
+
+  if (moment().diff(lastBlock[0].time, 'seconds') <= 90) {
+    res.status(200).send('Last block at ' + lastBlock[0].time)
+  } else {
+    res.status(500).send('Last block at ' + lastBlock[0].time)
+  }
 })
 
 app.get('/api/metrics', async (req, res) => {
