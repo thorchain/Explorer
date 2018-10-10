@@ -1,10 +1,12 @@
 # Explorer
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/237677c1b5f7a774fc78/maintainability)](https://codeclimate.com/github/thorchain/THORChain.info/maintainability)
+
 ## THORChain Blockchain Explorer
 
 [thorchain.info](https://thorchain.info)
 
-The Blockchain Explorer is a React App with an API that serves metrics from a local database that is polled from the blockchain. 
+The Blockchain Explorer is a React App with an API that serves metrics from a local database that is polled from the blockchain.
 
 It has four main components:
 
