@@ -1,24 +1,24 @@
 ---
 - name: Download EPEL
-  become: no
+  become: yes
   get_url:
     url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     dest: /usr/local/src/epel.rpm
 
 - name: Install EPEL
-  become: no
+  become: yes
   yum:
     name: /usr/local/src/epel.rpm
     state: present
 
 - name: Install Certbot
-  become: no
+  become: yes
   yum:
     name: python2-certbot-apache.noarch
     state: present
 
 - name: Create webroot directory where files for ACME challenge will be stored
-  become: no
+  become: yes
   file: path={{ certbot_webroot }} state=directory recurse=yes
 
 - name: Add nginx virtualhost for ACME challenge
@@ -32,7 +32,7 @@
   notify: restart nginx
 
 - name: Restarting nginx
-  become: no
+  become: yes
   meta: flush_handlers
 
 - name: Obtain certificates with webroot plugin
@@ -40,7 +40,7 @@
   command: "certbot certonly --noninteractive --webroot --webroot-path {{ certbot_webroot }} {% for domain in certbot_domains %}-d {{ domain }} {% endfor %} --agree-tos --email {{ certbot_email }}"
 
 - name: Update links from nginx to certificates
-  become: no
+  become: yes
   file:
     src: '{{ item.src }}'
     dest: '{{ item.dest }}'
@@ -52,7 +52,7 @@
   notify: restart nginx
 
 - name: Add cron job for certificate renewal
-  become: no
+  become: yes
   cron:
     name: Certbot automatic renewal.
     job: "certbot renew --quiet --no-self-upgrade {{ certbot_renewal_command_args }}"
