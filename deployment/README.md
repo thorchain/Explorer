@@ -36,7 +36,7 @@ sh
 ```
 cd deployment/terraform
 terraform init && terraform apply -var AWS_ACCESS_KEY="${AWS_ACCESS_KEY}" -var AWS_SECRET_KEY="${AWS_SECRET_KEY}" -var SSH_KEY_NAME="${SSH_KEY_NAME}" -var SSH_PUBLIC_FILE="${SSH_PUBLIC_FILE}" -var SSH_PRIVATE_FILE="${SSH_PRIVATE_FILE}"
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i /usr/local/bin/terraform-inventory ../ansible/setup.yml -e CHAIN_ID="genesis-alpha" -e NODE="tcp://18.223.204.76:26657"
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i /usr/local/bin/terraform-inventory ../ansible/setup.yml -e CHAIN_ID="genesis-beta" -e NODE="tcp://18.223.239.8:26657"
 cd ../..
 ```
 
