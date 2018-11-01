@@ -26,7 +26,7 @@ async function extract (): Promise<{ validators: ILcdStakeValidator[], validator
   // extract self delegations to determine how much validators have at stake
   const validatorDelegations = await Promise.all(validators.map(async (validator) => {
     const delegation: ILcdStakeDelegation =
-      await http.get(env.THORCHAIN_LCD_REST + `/stake/${validator.owner}/delegation/${validator.owner}`)
+      await http.get(env.THORCHAIN_LCD_REST + `/stake/delegators/${validator.owner}/delegations/${validator.owner}`)
     return delegation
   }))
 
