@@ -31,7 +31,7 @@ export async function getAllMetrics(esService: ElasticSearchService): Promise<IM
       transactionsPerSecondLast100Blocks: transactionsPerSecond(last100Blocks),
     },
     software: {
-      daemonVersion: '0.1.0', // TOD'
+      daemonVersion: '0.2.0', // TODO
       explorerVersion: version(),
       testnet: chainId,
     },
