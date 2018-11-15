@@ -55,10 +55,41 @@ export interface ILcdClpTradeMsg {
   }
 }
 
+export interface ILcdClpTradeResult {
+  fromTokenSpent: number,
+  runeTransacted: number,
+  toTokenReceived: number,
+}
+
+export type IOrderKind = 1 | 2
+
+export interface ILcdExchangeCreateLimitOrderMsg {
+  type: 'exchange/MsgCreateLimitOrder',
+  value: {
+    Sender: string,
+    Kind: IOrderKind,
+    Amount: IRpcCoin,
+    Price: IRpcCoin,
+    ExpiresAt: string,
+  }
+}
+
+export interface ILcdExchangeCreateLimitOrderResult {
+  filled: Array<{
+    order_id: string,
+    filled_amt: IRpcCoin,
+    filled_price: IRpcCoin,
+  }>,
+  processed: {
+    order_id: string,
+    open_amt: IRpcCoin,
+  },
+}
+
 export interface ILcdDecodedTx {
   type: 'auth/StdTx',
   value: {
-    msg: Array<ILcdCosmosSdkSendMsg | ILcdClpTradeMsg>,
+    msg: Array<ILcdCosmosSdkSendMsg | ILcdClpTradeMsg | ILcdExchangeCreateLimitOrderMsg>,
     fee: {
       amount: IRpcCoin[],
       gas: string,

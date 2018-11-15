@@ -11,22 +11,16 @@ export async function extractBlockResults (height: number): Promise<IRpcBlockRes
   return result
 }
 
-export function transformBlockResults (result: ITransformedBlock, blockResults: IRpcBlockResults, index: number):
-  ITransformedBlockResultsMsg {
+export function transformBlockResults<T> (result: ITransformedBlock, blockResults: IRpcBlockResults, index: number):
+  T | null {
   const log = blockResults.results.DeliverTx[index].log
-  if (!log) { return { fromTokenSpent: 0, runeTransacted: 0, toTokenReceived: 0 } }
+  if (!log) { return null }
   try {
-    const logJSON = JSON.parse(log.split('json')[1]) as ITransformedBlockResultsMsg
+    const logJSON = JSON.parse(log.split('json')[1]) as T
     return logJSON
   } catch (e) {
     logger.error(`Could not parse block result msg for tx ${index} in block ${result.block.height}: ${log}, `
       + `got error: ${e}`)
     throw e
   }
-}
-
-export interface ITransformedBlockResultsMsg {
-  fromTokenSpent: number,
-  runeTransacted: number,
-  toTokenReceived: number,
 }

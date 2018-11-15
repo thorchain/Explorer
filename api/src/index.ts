@@ -4,6 +4,7 @@ import * as request from 'request'
 import { env } from './helpers/env'
 import { getAllMetrics } from './metrics/getAllMetrics'
 import { getRecentTxsMetrics } from './metrics/getRecentTxsMetrics'
+import { getTradingHistory } from './metrics/getTradingHistory'
 import { transactionsPerSecond } from './metrics/transactionsPerSecond'
 import { getLastStoredBlocks } from './query/getLastStoredBlocks'
 import { ElasticSearchService } from './services/ElasticSearch'
@@ -73,6 +74,24 @@ app.use('/api/lcd', (req, res) => {
   if (req.method === 'OPTIONS') { res.sendStatus(200) }
   const url = env.LCD_API_HOST + req.url.replace('/api/lcd', '')
   req.pipe(request(url)).pipe(res)
+})
+
+app.get('/api/tradingview/config', (req, res) => {
+  res.send({
+    supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
+    supports_group_request: false,
+    supports_marks: false,
+    supports_search: false,
+    supports_timescale_marks: false,
+  })
+})
+
+app.get('/api/tradingview/history', async (req, res) => {
+  res.send(await getTradingHistory(esService, req.params))
+})
+
+app.get('/api/tradingview/time', (req, res) => {
+  res.send(Math.floor(Date.now() / 1000))
 })
 
 app.listen(3001, () => {

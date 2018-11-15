@@ -1,4 +1,5 @@
 import { IRpcCoin } from './tendermintRpc'
+import { IOrderKind } from './thorchainLcd'
 
 export interface IStoredGenesis {
   genesisTime: string,
@@ -25,6 +26,17 @@ export interface IStoredBlock {
   amountTransactedClp: number,
 }
 
+export interface IStoredLimitOrder {
+  height: number,
+  index: number,
+  order_id: string,
+  sender: string
+  kind: IOrderKind
+  amount: IRpcCoin,
+  price: IRpcCoin,
+  expires_at: string,
+}
+
 export interface IStoredRecentTx {
   height: number,
   index: number,
@@ -34,4 +46,13 @@ export interface IStoredRecentTx {
   from_coins: IRpcCoin,
   to_coins?: IRpcCoin,
   time: string,
+}
+
+export interface IStoredTrade {
+  height: number,
+  index: number,
+  maker_order_id: string,
+  taker_order_id: string,
+  amount: IRpcCoin,
+  price: IRpcCoin,
 }
