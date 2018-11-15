@@ -11,7 +11,8 @@
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-scripts-ts": "2.17.0",
-    "styled-components": "^3.4.2"
+    "styled-components": "^3.4.2",
+    "thorchain-info-common": "file:../../THORChain.info/common"
   },
   "scripts": {
     "start": "react-scripts-ts start",

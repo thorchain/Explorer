@@ -98,3 +98,22 @@ export interface ILcdDecodedTx {
     memo: string,
   }
 }
+
+export interface ILcdQueryClp {
+  clp: {
+    creator: string,
+    ticker: string,
+    name: string,
+    reserveRatio: string,
+    initialSupply: string,
+    currentSupply: string,
+    account_address: string,
+  },
+  account: {
+    RUNE: number,
+    XMR: number,
+    price: number,
+  }
+}
+
+export type ILcdQueryClps = ILcdQueryClp[]
