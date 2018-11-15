@@ -1,5 +1,7 @@
 import * as express from 'express'
 import * as moment from 'moment'
+import * as request from 'request'
+import { env } from './helpers/env'
 import { getAllMetrics } from './metrics/getAllMetrics'
 import { getRecentTxsMetrics } from './metrics/getRecentTxsMetrics'
 import { transactionsPerSecond } from './metrics/transactionsPerSecond'
@@ -13,6 +15,7 @@ const esService = new ElasticSearchService()
 // enable cors
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE, OPTIONS')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
   next()
 })
@@ -63,6 +66,13 @@ app.get('/api/recent-txs', async (req, res) => {
     logger.error(e)
     res.sendStatus(500)
   }
+})
+
+// attach a small proxy for the lcd, useful for preventing cors issues on local development machines
+app.use('/api/lcd', (req, res) => {
+  if (req.method === 'OPTIONS') { res.sendStatus(200) }
+  const url = env.LCD_API_HOST + req.url.replace('/api/lcd', '')
+  req.pipe(request(url)).pipe(res)
 })
 
 app.listen(3001, () => {

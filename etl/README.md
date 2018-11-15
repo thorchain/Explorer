@@ -1,4 +1,4 @@
-# Explorer API
+# Explorer ETL Service
 
 ## Development
 
@@ -7,7 +7,7 @@
 1. Start a local ElasticSearch instance, e. g. using Docker Compose: `docker-compose up`
 1. Start a local LCD client: `thorchaincli advanced rest-server --chain-id your-chain-id`
 1. Start a local TX decoding server: `thorchaindebug tx-decoding-server`
-1. Start the API: `yarn start`
+1. Start the ETL Service: `yarn start`
 
 ### Debug
 
