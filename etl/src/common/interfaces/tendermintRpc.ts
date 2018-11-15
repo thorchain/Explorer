@@ -1,0 +1,1 @@
+../../../../common/interfaces/tendermintRpc.ts

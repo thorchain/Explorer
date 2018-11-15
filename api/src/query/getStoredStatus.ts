@@ -1,4 +1,4 @@
-import { IStoredStatus } from '../interfaces/stored'
+import { IStoredStatus } from '../common/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getStoredStatus (esService: ElasticSearchService): Promise<IStoredStatus> {

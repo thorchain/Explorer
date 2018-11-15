@@ -1,4 +1,4 @@
-import { IStoredRecentTx } from '../interfaces/stored'
+import { IStoredRecentTx } from '../common/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getRecentTxs (esService: ElasticSearchService, size: number): Promise<IStoredRecentTx[]> {

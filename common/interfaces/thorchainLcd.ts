@@ -61,13 +61,13 @@ export interface ILcdClpTradeResult {
   toTokenReceived: number,
 }
 
-export type IOrderKind = 1 | 2
+export type ILcdOrderKind = 1 | 2
 
 export interface ILcdExchangeCreateLimitOrderMsg {
   type: 'exchange/MsgCreateLimitOrder',
   value: {
     Sender: string,
-    Kind: IOrderKind,
+    Kind: ILcdOrderKind,
     Amount: IRpcCoin,
     Price: IRpcCoin,
     ExpiresAt: string,

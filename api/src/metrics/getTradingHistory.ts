@@ -1,4 +1,4 @@
-import { ITradingViewBars, ITradingViewBarsParams } from '../interfaces/metrics'
+import { ITradingViewBars, ITradingViewBarsParams } from '../common/interfaces/metrics'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getTradingHistory(esService: ElasticSearchService, params: ITradingViewBarsParams):

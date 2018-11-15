@@ -1,0 +1,1 @@
+../../../../common/interfaces/thorchainLcd.ts

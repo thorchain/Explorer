@@ -1,4 +1,4 @@
-import { IStoredBlock } from '../interfaces/stored'
+import { IStoredBlock } from '../common/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getLastStoredBlocks (esService: ElasticSearchService, num: number): Promise<IStoredBlock[]> {

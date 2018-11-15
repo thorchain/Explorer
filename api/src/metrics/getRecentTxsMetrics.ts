@@ -1,4 +1,4 @@
-import { IRecentTxMetrics } from '../interfaces/metrics'
+import { IRecentTxMetrics } from '../common/interfaces/metrics'
 import { getRecentTxs } from '../query/getRecentTxs'
 import { ElasticSearchService } from '../services/ElasticSearch'
 

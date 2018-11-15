@@ -23,6 +23,20 @@ export interface IStoredBlock {
   amountTransactedClp: number,
 }
 
+export type IOrderKind = 1 | 2
+
+export interface IStoredLimitOrder {
+  height: number,
+  index: number,
+  order_id: string,
+  sender: string
+  kind: IOrderKind
+  amount: IStoredCoin,
+  price: IStoredCoin,
+  expires_at: string,
+  time: string,
+}
+
 export interface IStoredRecentTx {
   height: number,
   index: number,
@@ -37,4 +51,14 @@ export interface IStoredRecentTx {
 export interface IStoredCoin {
   denom: string,
   amount: string,
+}
+
+export interface IStoredTrade {
+  height: number,
+  index: number,
+  maker_order_id: string,
+  taker_order_id: string,
+  amount: IStoredCoin,
+  price: IStoredCoin,
+  time: string,
 }

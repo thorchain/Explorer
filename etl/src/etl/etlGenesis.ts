@@ -1,6 +1,6 @@
+import { IStoredGenesis } from '../common/interfaces/stored'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
-import { IStoredGenesis } from '../interfaces/stored'
 import { IRpcGenesis } from '../interfaces/tendermintRpc'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'

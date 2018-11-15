@@ -1,4 +1,4 @@
-import { IStoredBlock } from '../interfaces/stored'
+import { IStoredBlock } from '../common/interfaces/stored'
 import { transactionsPerSecond } from './transactionsPerSecond'
 
 export function capacity (blocks: IStoredBlock[]) {

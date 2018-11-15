@@ -1,6 +1,6 @@
 import { msBetween } from '../helpers/msBetween'
 import { sum } from '../helpers/sum'
-import { IStoredBlock } from '../interfaces/stored'
+import { IStoredBlock } from '../common/interfaces/stored'
 
 export function transactionsPerSecond (blocks: IStoredBlock[]) {
   const txsLast100 = sum(blocks.map(block => block.numTxs))
