@@ -231,6 +231,7 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
             order_id: createLimOrdResult.processed.order_id,
             price: msg.value.Price,
             sender: msg.value.Sender,
+            time: result.block.time,
           })
 
           for (const filled of createLimOrdResult.filled) {
@@ -241,6 +242,7 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
               maker_order_id: filled.order_id,
               price: filled.filled_price,
               taker_order_id: createLimOrdResult.processed.order_id,
+              time: result.block.time,
             })
           }
         } catch (e) {

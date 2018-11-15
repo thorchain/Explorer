@@ -35,6 +35,7 @@ export interface IStoredLimitOrder {
   amount: IRpcCoin,
   price: IRpcCoin,
   expires_at: string,
+  time: string,
 }
 
 export interface IStoredRecentTx {
@@ -55,4 +56,5 @@ export interface IStoredTrade {
   taker_order_id: string,
   amount: IRpcCoin,
   price: IRpcCoin,
+  time: string,
 }
