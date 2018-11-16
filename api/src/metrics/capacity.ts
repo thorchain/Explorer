@@ -1,4 +1,4 @@
-import { IStoredBlock } from 'thorchain-info-common/build/interfaces/stored'
+import { IStoredBlock } from 'thorchain-info-common/src/interfaces/stored'
 import { transactionsPerSecond } from './transactionsPerSecond'
 
 export function capacity (blocks: IStoredBlock[]) {

@@ -1,5 +1,5 @@
-import { ILcdStakeDelegation, ILcdStakeValidator } from 'thorchain-info-common/build/interfaces/thorchainLcd'
-import { IStoredValidators } from 'thorchain-info-common/build/interfaces/stored'
+import { ILcdStakeDelegation, ILcdStakeValidator } from 'thorchain-info-common/src/interfaces/thorchainLcd'
+import { IStoredValidators } from 'thorchain-info-common/src/interfaces/stored'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { ElasticSearchService } from '../services/ElasticSearch'

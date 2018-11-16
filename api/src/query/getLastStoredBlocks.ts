@@ -1,4 +1,4 @@
-import { IStoredBlock } from 'thorchain-info-common/build/interfaces/stored'
+import { IStoredBlock } from 'thorchain-info-common/src/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getLastStoredBlocks (esService: ElasticSearchService, num: number): Promise<IStoredBlock[]> {

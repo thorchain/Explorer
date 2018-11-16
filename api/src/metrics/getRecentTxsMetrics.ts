@@ -1,4 +1,4 @@
-import { IRecentTxMetrics } from 'thorchain-info-common/build/interfaces/metrics'
+import { IRecentTxMetrics } from 'thorchain-info-common/src/interfaces/metrics'
 import { getRecentTxs } from '../query/getRecentTxs'
 import { ElasticSearchService } from '../services/ElasticSearch'
 

@@ -1,5 +1,5 @@
-import { IRpcStatus } from 'thorchain-info-common/build/interfaces/tendermintRpc'
-import { IStoredStatus } from 'thorchain-info-common/build/interfaces/stored'
+import { IRpcStatus } from 'thorchain-info-common/src/interfaces/tendermintRpc'
+import { IStoredStatus } from 'thorchain-info-common/src/interfaces/stored'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { ElasticSearchService } from '../services/ElasticSearch'

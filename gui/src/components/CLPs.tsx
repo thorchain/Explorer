@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { formatNum } from 'thorchain-info-common/build/helpers/formatNum'
-import { ICLP } from 'thorchain-info-common/build/interfaces/metrics'
+import { ICLP } from 'thorchain-info-common/src/interfaces/metrics'
 import { Label } from './Label'
 import { Placeholder } from './Placeholder'
 import { Title } from './Title'

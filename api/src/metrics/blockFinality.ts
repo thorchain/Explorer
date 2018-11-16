@@ -1,4 +1,4 @@
-import { IStoredBlock } from 'thorchain-info-common/build/interfaces/stored'
+import { IStoredBlock } from 'thorchain-info-common/src/interfaces/stored'
 import { avg } from '../helpers/avg'
 import { msBetween } from '../helpers/msBetween'
 

@@ -1,5 +1,5 @@
-import { IRpcGenesis } from 'thorchain-info-common/build/interfaces/tendermintRpc'
-import { IStoredGenesis } from 'thorchain-info-common/build/interfaces/stored'
+import { IRpcGenesis } from 'thorchain-info-common/src/interfaces/tendermintRpc'
+import { IStoredGenesis } from 'thorchain-info-common/src/interfaces/stored'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { ElasticSearchService } from '../services/ElasticSearch'

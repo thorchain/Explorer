@@ -1,3 +1,5 @@
+import { IStoredCoin } from "./stored";
+
 export interface IClpMetrics {
   baseTicker: string,
   ticker: string,
@@ -92,6 +94,29 @@ export interface ICLPAccount {
 export interface ICoinMetrics {
   denom: string,
   amount: string,
+}
+
+export interface IExchangePairParams {
+  amountDenom: string
+  priceDenom: string
+}
+
+export interface IExchangePair {
+  lastPrice: string
+  c: string
+  o: string
+  h: string
+  l: string
+  v: string
+}
+
+export interface IExchangeTradesParams {
+  account?: string
+}
+
+export interface IExchangeTrades {
+  price: IStoredCoin
+  amount: IStoredCoin
 }
 
 export interface ITradingViewBarsParams {

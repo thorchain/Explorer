@@ -1,4 +1,4 @@
-import { IRpcBlockResults } from 'thorchain-info-common/build/interfaces/tendermintRpc'
+import { IRpcBlockResults } from 'thorchain-info-common/src/interfaces/tendermintRpc'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
 import { logger } from '../services/logger'
