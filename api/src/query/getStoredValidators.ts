@@ -1,4 +1,4 @@
-import { IStoredValidators } from '../common/interfaces/stored'
+import { IStoredValidators } from 'thorchain-info-common/build/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getStoredValidators (esService: ElasticSearchService): Promise<IStoredValidators> {

@@ -2,6 +2,7 @@
   "name": "thorchain-info-common",
   "version": "0.1.0",
   "license": "MIT",
+  "main": "./build",
   "devDependencies": {
     "@types/jest": "^23.3.9",
     "jest": "^23.6.0",
@@ -12,6 +13,7 @@
     "typescript": "^3.1.6"
   },
   "scripts": {
+    "build": "tsc",
     "test": "jest",
     "test-watch": "jest --watch"
   },

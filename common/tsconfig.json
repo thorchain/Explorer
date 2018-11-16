@@ -4,7 +4,7 @@
       "outDir": "build",
       "module": "commonjs",
       "target": "es5",
-      "lib": ["es6"],
+      "lib": ["es6", "dom"],
       "sourceMap": true,
       "allowJs": true,
       "moduleResolution": "node",
@@ -18,6 +18,7 @@
       "noUnusedLocals": true,
       "experimentalDecorators": true,
       "downlevelIteration": true,
+      "declaration": true,
       "paths": {
         "*": ["src/types/*"]
       }

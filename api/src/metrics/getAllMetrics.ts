@@ -1,4 +1,4 @@
-import { IMetrics } from '../common/interfaces/metrics'
+import { IMetrics } from 'thorchain-info-common/build/interfaces/metrics'
 import { getLastStoredBlocks } from '../query/getLastStoredBlocks'
 import { getStoredGenesis } from '../query/getStoredGenesis'
 import { getStoredStatus } from '../query/getStoredStatus'

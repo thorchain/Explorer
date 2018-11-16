@@ -1,4 +1,4 @@
-import { ITradingViewBars, ITradingViewBarsParams } from '../common/interfaces/metrics'
+import { ITradingViewBars, ITradingViewBarsParams } from 'thorchain-info-common/build/interfaces/metrics'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getTradingHistory(esService: ElasticSearchService, params: ITradingViewBarsParams):

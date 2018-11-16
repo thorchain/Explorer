@@ -1,1 +1,0 @@
-../../../../common/interfaces/stored.ts
