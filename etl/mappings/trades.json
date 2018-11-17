@@ -1,0 +1,67 @@
+{
+    "mappings": {
+        "type": {
+            "properties": {
+                "amount": {
+                    "properties": {
+                        "amount": {
+                            "type": "double",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword",
+                                    "ignore_above": 256
+                                }
+                            }
+                        },
+                        "denom": {
+                            "type": "text",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword",
+                                    "ignore_above": 256
+                                }
+                            }
+                        }
+                    }
+                },
+                "height": {
+                    "type": "long"
+                },
+                "index": {
+                    "type": "long"
+                },
+                "maker_order_id": {
+                    "type": "long"
+                },
+                "price": {
+                    "properties": {
+                        "amount": {
+                            "type": "double",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword",
+                                    "ignore_above": 256
+                                }
+                            }
+                        },
+                        "denom": {
+                            "type": "text",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword",
+                                    "ignore_above": 256
+                                }
+                            }
+                        }
+                    }
+                },
+                "taker_order_id": {
+                    "type": "long"
+                },
+                "time": {
+                    "type": "date"
+                }
+            }
+        }
+    }
+}

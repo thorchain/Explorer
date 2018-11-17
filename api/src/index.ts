@@ -3,8 +3,10 @@ import * as moment from 'moment'
 import * as request from 'request'
 import { env } from './helpers/env'
 import { getAllMetrics } from './metrics/getAllMetrics'
+import { getExchangePair } from './metrics/getExchangePair'
+import { getExchangeTrades } from './metrics/getExchangeTrades'
 import { getRecentTxsMetrics } from './metrics/getRecentTxsMetrics'
-import { getTradingHistory } from './metrics/getTradingHistory'
+import { getTradingViewBars } from './metrics/getTradingViewBars'
 import { transactionsPerSecond } from './metrics/transactionsPerSecond'
 import { getLastStoredBlocks } from './query/getLastStoredBlocks'
 import { ElasticSearchService } from './services/ElasticSearch'
@@ -39,7 +41,7 @@ app.get('/api/status/last-block-lte-90s', async (req, res) => {
   const lastBlock = await getLastStoredBlocks(esService, 1)
 
   if (!lastBlock[0]) {
-    res.status(500).send('No blocks found')
+    res.status(404).send('No blocks found')
     return
   }
 
@@ -76,6 +78,25 @@ app.use('/api/lcd', (req, res) => {
   req.pipe(request(url)).pipe(res)
 })
 
+app.get('/api/exchange/pair/:priceDenom/:amountDenom', async (req, res) => {
+  try {
+    res.send(await getExchangePair(esService, req.params))
+  } catch (e) {
+    logger.error(e)
+    res.sendStatus(500)
+  }
+})
+
+app.get('/api/exchange/trades/:priceDenom/:amountDenom', async (req, res) => {
+  const account = req.query.account
+  try {
+    res.send(await getExchangeTrades(esService, req.params, account))
+  } catch (e) {
+    logger.error(e)
+    res.sendStatus(500)
+  }
+})
+
 app.get('/api/tradingview/config', (req, res) => {
   res.send({
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
@@ -87,7 +108,7 @@ app.get('/api/tradingview/config', (req, res) => {
 })
 
 app.get('/api/tradingview/history', async (req, res) => {
-  res.send(await getTradingHistory(esService, req.params))
+  res.send(await getTradingViewBars(esService, req.params))
 })
 
 app.get('/api/tradingview/time', (req, res) => {
