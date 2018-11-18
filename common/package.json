@@ -1,8 +1,11 @@
 {
   "name": "thorchain-info-common",
-  "version": "0.6.0",
+  "version": "0.10.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thorchain/THORChain.info/tree/master/common"
+  },
   "license": "MIT",
-  "main": "./build",
   "devDependencies": {
     "@types/jest": "^23.3.9",
     "jest": "^23.6.0",
@@ -14,8 +17,12 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "tslint --project .",
     "test": "jest",
-    "test-watch": "jest --watch"
+    "test-watch": "jest --watch",
+    "postversion": "git push && git push --tags",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm test"
   },
   "jest": {
     "transform": {
