@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 
-import { ICLP } from '../interfaces/metrics'
+import { ICLP } from 'thorchain-info-common/src/interfaces/metrics'
 import { Label } from './Label'
 import { Pane } from './Pane'
 import { PaneHeader } from './PaneHeader'

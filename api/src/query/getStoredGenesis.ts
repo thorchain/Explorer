@@ -1,4 +1,4 @@
-import { IStoredGenesis } from '../interfaces/stored'
+import { IStoredGenesis } from 'thorchain-info-common/src/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getStoredGenesis (esService: ElasticSearchService): Promise<IStoredGenesis> {

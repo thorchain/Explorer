@@ -1,11 +1,11 @@
+import { IRpcBlock, IRpcBlockResults } from 'thorchain-info-common/src/interfaces/tendermintRpc'
+import { ILcdClpTradeResult, ILcdDecodedTx, ILcdExchangeCreateLimitOrderResult } from 'thorchain-info-common/src/interfaces/thorchainLcd'
 import { cache } from '../cache/cache'
+import { IStoredBlock, IStoredLimitOrder, IStoredRecentTx, IStoredTrade } from 'thorchain-info-common/src/interfaces/stored'
 import { calcBase64ByteSize } from '../helpers/calcBase64ByteSize'
 import { decodeTx } from '../helpers/decodeTx'
 import { env } from '../helpers/env'
 import { http } from '../helpers/http'
-import { IStoredBlock, IStoredRecentTx } from '../interfaces/stored'
-import { IRpcBlock, IRpcBlockResults } from '../interfaces/tendermintRpc'
-import { ILcdDecodedTx } from '../interfaces/thorchainLcd'
 import { ElasticSearchService } from '../services/ElasticSearch'
 import { EtlService } from '../services/EtlService'
 import { logger } from '../services/logger'
@@ -23,7 +23,7 @@ export async function etlBlock (etlService: EtlService, esService: ElasticSearch
   }
 
   const transformed = await transform(extracted, height)
-  await load(etlService, esService, transformed)
+  await load(esService, transformed)
 
   return height
 }
@@ -47,7 +47,9 @@ export async function transform (block: IRpcBlock, height: number): Promise<ITra
       size: block.data.txs ? block.data.txs.map(calcBase64ByteSize).reduce((sum, size) => sum + size, 0) : 0,
       time: block.header.time,
     },
+    limitOrders: [],
     recentTxs: [],
+    trades: [],
   }
 
   const blockCache: ITransformCache =
@@ -76,7 +78,7 @@ export async function transform (block: IRpcBlock, height: number): Promise<ITra
   return result
 }
 
-export async function load(etlService: EtlService, esService: ElasticSearchService, trans: ITransformedBlock) {
+export async function load(esService: ElasticSearchService, trans: ITransformedBlock) {
   const bulkBody: any[] = []
 
   bulkBody.push({ index: { _index: 'blocks', _type: 'type', _id: `${trans.block.height}` } })
@@ -95,6 +97,22 @@ export async function load(etlService: EtlService, esService: ElasticSearchServi
     bulkBody.push(recentTx)
   }))
 
+  index = 0
+  trans.limitOrders.forEach(limitOrdersInMsgs => limitOrdersInMsgs.forEach(limitOrder => {
+    limitOrder.index = index
+    index++
+    bulkBody.push({ index: { _index: 'limit-orders', _type: 'type' } })
+    bulkBody.push(limitOrder)
+  }))
+
+  index = 0
+  trans.trades.forEach(tradesInMsgs => tradesInMsgs.forEach(trade => {
+    trade.index = index
+    index++
+    bulkBody.push({ index: { _index: 'trades', _type: 'type' } })
+    bulkBody.push(trade)
+  }))
+
   await esService.bulk({ body: bulkBody })
 }
 
@@ -102,8 +120,12 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
   async (tx: string, index: number): Promise<void> => {
 
   // put recentTxs into result first, so order is maintained
+  const limitOrders: IStoredLimitOrder[] = []
+  result.limitOrders.push(limitOrders)
   const recentTxs: IStoredRecentTx[] = []
   result.recentTxs.push(recentTxs)
+  const trades: IStoredTrade[] = []
+  result.trades.push(trades)
 
   let decodedTx: string
   try {
@@ -160,9 +182,12 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
         if (blockCache.blockResults === null) { continue }
 
         try {
-          const transformedBlockResults = await transformBlockResults(result, blockCache.blockResults!, index)
+          const clpTradeResult = await transformBlockResults<ILcdClpTradeResult>(
+            result, blockCache.blockResults!, index)
 
-          result.block.amountTransactedClp += transformedBlockResults.runeTransacted
+          if (clpTradeResult) {
+            result.block.amountTransactedClp += clpTradeResult.runeTransacted
+          }
 
           recentTxs.push({
             from: msg.value.Sender,
@@ -170,9 +195,56 @@ const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
             height: result.block.height,
             time: result.block.time,
             to: msg.value.Sender,
-            to_coins: { amount: `${transformedBlockResults.toTokenReceived}`, denom: msg.value.ToTicker },
+            to_coins: { amount: `${clpTradeResult ? clpTradeResult.toTokenReceived : 0}`, denom: msg.value.ToTicker },
             type: 'CLP',
           } as IStoredRecentTx)
+        } catch (e) {
+          // TODO remove try/catch block as soon as the following issue is resolved:
+          // https://github.com/thorchain/THORChain/issues/29
+        }
+      } else if (msg.type === 'exchange/MsgCreateLimitOrder') {
+        // get to amount and rune transacted
+        if (blockCache.blockResultsPromise === null) {
+          blockCache.blockResultsPromise = extractBlockResults(result.block.height)
+        }
+
+        try {
+          blockCache.blockResults = await blockCache.blockResultsPromise
+        } catch (e) {
+          logger.error(`Could not receive block results for block ${result.block.height}, error:`, e)
+        }
+
+        if (blockCache.blockResults === null) { continue }
+
+        try {
+          const createLimOrdResult = await transformBlockResults<ILcdExchangeCreateLimitOrderResult>(
+            result, blockCache.blockResults!, index)
+
+          if (!createLimOrdResult) { continue }
+
+          limitOrders.push({
+            amount: msg.value.Amount,
+            expires_at: msg.value.ExpiresAt,
+            height: result.block.height,
+            index,
+            kind: msg.value.Kind,
+            order_id: createLimOrdResult.processed.order_id,
+            price: msg.value.Price,
+            sender: msg.value.Sender,
+            time: result.block.time,
+          })
+
+          for (const filled of createLimOrdResult.filled) {
+            trades.push({
+              amount: filled.filled_amt,
+              height: result.block.height,
+              index,
+              maker_order_id: filled.order_id,
+              price: filled.filled_price,
+              taker_order_id: createLimOrdResult.processed.order_id,
+              time: result.block.time,
+            })
+          }
         } catch (e) {
           // TODO remove try/catch block as soon as the following issue is resolved:
           // https://github.com/thorchain/THORChain/issues/29
@@ -191,5 +263,7 @@ interface ITransformCache {
 export interface ITransformedBlock {
   addresses: Set<string>
   block: IStoredBlock
+  limitOrders: IStoredLimitOrder[][]
   recentTxs: IStoredRecentTx[][]
+  trades: IStoredTrade[][]
 }

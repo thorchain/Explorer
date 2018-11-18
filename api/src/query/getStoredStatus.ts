@@ -1,4 +1,4 @@
-import { IStoredStatus } from '../interfaces/stored'
+import { IStoredStatus } from 'thorchain-info-common/src/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getStoredStatus (esService: ElasticSearchService): Promise<IStoredStatus> {

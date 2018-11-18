@@ -60,7 +60,6 @@ function httpRequest(method: string, url: string, options?: any, body?: any) {
   }
 
   return fetch(url, { ...defaults, ...options })
-    .then(a => a)
     .then(parseBody)
     .then(rejectIfStatusNotOk)
     .then(selectParsedBody)

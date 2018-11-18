@@ -93,3 +93,56 @@ export interface ICoinMetrics {
   denom: string,
   amount: string,
 }
+
+export interface IExchangePairParams {
+  amountDenom: string
+  priceDenom: string
+}
+
+export interface IExchangePair {
+  c: number
+  o: number
+  h: number
+  l: number
+  v: number
+}
+
+export interface IExchangeTradesParams {
+  account?: string
+  amountDenom: string
+  priceDenom: string
+}
+
+export interface IExchangeTrade {
+  price: number
+  amount: number
+}
+
+export interface ITradingViewBarsParams {
+  symbol?: string
+  from?: number
+  to?: number
+  resolution?: string
+}
+
+export type ITradingViewBars = ITradingViewBarsOk | ITradingViewBarsErr | ITradingViewBarsNoData
+
+export interface ITradingViewBarsOk {
+  s: 'ok'
+  t: number[]
+  c: number[]
+  o?: number[]
+  h?: number[]
+  l?: number[]
+  v?: number[]
+}
+
+export interface ITradingViewBarsErr {
+  s: 'error'
+  errmsg: string
+}
+
+export interface ITradingViewBarsNoData {
+  s: 'no_data'
+  nextTime: number
+}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { formatPercent } from '../helpers/formatPercent'
+import { formatPercent } from 'thorchain-info-common/build/helpers/formatPercent'
 import { Label } from './Label'
 
 const Container = styled.div`

@@ -1,4 +1,4 @@
-import { IStoredBlock } from '../interfaces/stored'
+import { IStoredBlock } from 'thorchain-info-common/src/interfaces/stored'
 import { blockFinality } from './blockFinality'
 
 export function transactionTime (blocks: IStoredBlock[]) {

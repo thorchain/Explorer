@@ -5,6 +5,7 @@ config({ path: path.resolve(__dirname, '..', '..', '.env') })
 
 export const env = {
   ELASTICSEARCH_HOST: getEnvStr('ELASTICSEARCH_HOST'),
+  LCD_API_HOST: getEnvStr('LCD_API_HOST'),
 }
 
 // function getEnvInt (key: string, defaultValue?: number): number {

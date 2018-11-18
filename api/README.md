@@ -4,7 +4,7 @@
 
 1. Install dependencies: `yarn`
 1. Copy and adjust the .env file: `cp .env.example .env`
-1. Start a local ElasticSearch instance, e. g. using Docker Compose: `cd ../etl && docker-compose up`
+1. Start a local ElasticSearch instance, e. g. using Docker Compose: `cd ../etl && docker-compose up && cd ../api`
 1. Start the API: `yarn start`
 
 ### Debug
