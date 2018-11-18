@@ -71,7 +71,9 @@ app.get('/api/recent-txs', async (req, res) => {
   }
 })
 
-// attach a small proxy for the lcd, useful for preventing cors issues on local development machines
+// attach a small proxy for the lcd, useful for preventing cors issues on local development machines. This is a
+// workaround until the LCD's CORS flag works: `thorchaincli advanced rest-server --cors "localhost"`, see
+// https://github.com/cosmos/cosmos-sdk/search?q=flagcors&unscoped_q=flagcors&type=Code
 app.use('/api/lcd', (req, res) => {
   if (req.method === 'OPTIONS') { res.sendStatus(200) }
   const url = env.LCD_API_HOST + req.url.replace('/api/lcd', '')
