@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "REACT_APP_API_HOST='http://localhost:3001/api' REACT_APP_LCD_API_HOST='http://localhost:3001/api/lcd' react-scripts-ts start",
+    "lint": "tslint --project .",
     "build": "REACT_APP_API_HOST='https://thorchain.info/api' REACT_APP_LCD_API_HOST='https://thorchain.info/lcd' react-scripts-ts build",
     "test": "REACT_APP_API_HOST='https://thorchain.info/api' REACT_APP_LCD_API_HOST='https://thorchain.info/lcd' react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject"

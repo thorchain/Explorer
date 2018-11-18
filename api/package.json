@@ -36,6 +36,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "tslint --project .",
     "start": "ts-node ./src/index.ts",
     "debug": "npm-run-all build debug-build",
     "debug-build": "node --trace-warnings --inspect ./build/index.js",

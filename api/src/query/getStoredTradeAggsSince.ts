@@ -145,6 +145,13 @@ export async function getStoredTradeAggsSince(
     }) as any as ITradeBefore
 
     if (result2.hits.total === 0) {
+      // variable here are in line with TradingView:
+      // c: closing price
+      // h: highest price
+      // l: lowest price
+      // o: opening price
+      // v: volume
+
       return {
         c: 0,
         o: 0,
