@@ -99,6 +99,12 @@ export interface IExchangePairParams {
   priceDenom: string
 }
 
+// variable names in this interface are in line with TradingView:
+// c: closing price
+// h: highest price
+// l: lowest price
+// o: opening price
+// v: volume
 export interface IExchangePair {
   c: number
   o: number
