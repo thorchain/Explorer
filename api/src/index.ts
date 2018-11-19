@@ -117,6 +117,13 @@ app.get('/api/tradingview/time', (req, res) => {
   res.send(Math.floor(Date.now() / 1000))
 })
 
+/**
+ * Proxying binance APIs because of cross-origin issues
+ */
+app.get('/api/swap/prices', async (req, res) => {
+  req.pipe(request('https://api.binance.com/api/v3/ticker/price')).pipe(res)
+})
+
 app.listen(3001, () => {
   logger.info('THORChain.info API listening on port 3001!')
 })
