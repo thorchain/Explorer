@@ -76,11 +76,12 @@ export interface ICLP {
 
 export interface ICLPDetails {
   creator: string,
+  decimals: number,
   ticker: string,
   name: string,
-  reserveRatio: number,
-  initialSupply: number,
-  currentSupply: number,
+  reserveRatio: string,
+  initialSupply: string,
+  currentSupply: string,
   account_address: string
 }
 
