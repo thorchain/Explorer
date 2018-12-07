@@ -42,6 +42,11 @@
         recursive: yes
         delete: yes
     - synchronize:
+        src: ../../etl/mappings
+        dest: "{{app_root_directory}}/etl"
+        recursive: yes
+        delete: yes
+    - synchronize:
         src: ../../etl/package.json
         dest: "{{app_root_directory}}/etl"
     - synchronize:
