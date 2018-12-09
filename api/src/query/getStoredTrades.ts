@@ -1,9 +1,40 @@
-import { IStoredTrade } from 'thorchain-info-common/src/interfaces/stored'
+import { IStoredLimitOrder, IStoredTrade } from 'thorchain-info-common/src/interfaces/stored'
 import { ElasticSearchService } from '../services/ElasticSearch'
 
 export async function getStoredTrades (
-  esService: ElasticSearchService, amountDenom: string, priceDenom: string, size: number,
+  esService: ElasticSearchService, amountDenom: string, priceDenom: string, size: number, account?: string,
 ): Promise<IStoredTrade[]> {
+  let bool
+
+  if (account) {
+    const limOrds = await esService.client.search<IStoredLimitOrder>({ body: {
+      query: {
+        term: {
+          'sender.keyword': {
+            value: account,
+          },
+        },
+      },
+    }, index: 'limit-orders', type: 'type' })
+    const orderIds = limOrds.hits.hits.map(hit => hit._source.order_id)
+    bool = {
+      minimum_should_match: 1,
+      should: [
+        {
+          terms: {
+            maker_order_id: orderIds,
+          },
+        },
+        {
+          terms: {
+            taker_order_id: orderIds,
+          },
+        },
+      ],
+    }
+  }
+  console.log({ account, bool })
+
   const { hits: { hits } } =
     await esService.client.search<IStoredTrade>({ body: {
       query: {
@@ -20,6 +51,7 @@ export async function getStoredTrades (
               },
             },
           ],
+          ...bool,
         },
       },
       size,
