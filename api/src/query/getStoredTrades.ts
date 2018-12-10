@@ -33,7 +33,6 @@ export async function getStoredTrades (
       ],
     }
   }
-  console.log({ account, bool })
 
   const { hits: { hits } } =
     await esService.client.search<IStoredTrade>({ body: {

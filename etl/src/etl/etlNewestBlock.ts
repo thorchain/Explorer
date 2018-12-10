@@ -32,7 +32,9 @@ async function doEtlNewestBlock (
       if (cache.latestBlockHeight !== null) {
         // add blocks that should be processed to blocksToEtl
         for (let i = cache.latestBlockHeight + 1; i < newHeight; i++) { cache.blocksToEtl.push(i) }
-        logger.debug(`added entries to blocksToEtl between ${cache.latestBlockHeight + 1} and ${newHeight - 1}`)
+        if (cache.latestBlockHeight + 1 <= newHeight - 1) {
+          logger.debug(`added entries to blocksToEtl between ${cache.latestBlockHeight + 1} and ${newHeight - 1}`)
+        }
       }
       cache.latestBlockHeight = newHeight
       if (cache.earliestBlockHeightCheckedInDatabase === null) {
