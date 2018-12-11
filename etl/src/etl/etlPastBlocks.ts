@@ -38,7 +38,7 @@ async function doEtlPastBlocks (
       const height = cache.blocksToEtl.pop()!
       logger.debug('Found blocks to etl in cache, get block at height ' + height)
       await limiter.push(() => etlBlock(etlService, esService, height).catch((e) => {
-        logger.error('Unexpected blocks to etl from cache error, will add the block back to cache', e)
+        logger.error(`Unexpected blocks to etl from cache error, will add the block back to cache, error: ${e}`)
         cache.blocksToEtl.unshift(height)
       }))
     } else if (cache.blocksToCheck.length > 0) {

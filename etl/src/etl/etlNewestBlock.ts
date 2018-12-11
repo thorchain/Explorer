@@ -43,7 +43,7 @@ async function doEtlNewestBlock (
 
       await sleep(500)
     } catch (e) {
-      logger.error('Unexpected new block etl error', e)
+      logger.error(`Unexpected new block etl error: ${e}`)
       await sleep(500)
     }
   }
