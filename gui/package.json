@@ -12,7 +12,7 @@
     "react-dom": "^16.4.2",
     "react-scripts-ts": "2.17.0",
     "styled-components": "^3.4.2",
-    "thorchain-info-common": "file:../common"
+    "thorchain-info-common": "^0.10.0"
   },
   "scripts": {
     "start": "REACT_APP_API_HOST='http://localhost:3001/api' REACT_APP_LCD_API_HOST='http://localhost:3001/api/lcd' react-scripts-ts start",

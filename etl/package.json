@@ -23,7 +23,7 @@
     "elasticsearch": "^15.1.1",
     "forever": "^0.15.3",
     "node-fetch": "^2.2.0",
-    "thorchain-info-common": "file:../common",
+    "thorchain-info-common": "^0.10.0",
     "winston": "^3.0.0"
   },
   "scripts": {
