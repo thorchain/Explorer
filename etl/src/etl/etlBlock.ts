@@ -1,7 +1,9 @@
+import { IStoredBlock, IStoredLimitOrder, IStoredRecentTx, IStoredTrade,
+  } from 'thorchain-info-common/src/interfaces/stored'
 import { IRpcBlock, IRpcBlockResults } from 'thorchain-info-common/src/interfaces/tendermintRpc'
-import { ILcdClpTradeResult, ILcdDecodedTx, ILcdExchangeCreateLimitOrderResult } from 'thorchain-info-common/src/interfaces/thorchainLcd'
+import { ILcdClpTradeResult, ILcdDecodedTx, ILcdExchangeCreateLimitOrderResult,
+  } from 'thorchain-info-common/src/interfaces/thorchainLcd'
 import { cache } from '../cache/cache'
-import { IStoredBlock, IStoredLimitOrder, IStoredRecentTx, IStoredTrade } from 'thorchain-info-common/src/interfaces/stored'
 import { calcBase64ByteSize } from '../helpers/calcBase64ByteSize'
 import { decodeTx } from '../helpers/decodeTx'
 import { env } from '../helpers/env'
@@ -19,11 +21,19 @@ export async function etlBlock (etlService: EtlService, esService: ElasticSearch
 
   if (height === cache.latestBlockHeight) {
     // we have already seen that block - no need to transform or process it again
+    logger.debug(`Have already seen block at height: ${height}, skipping`)
     return height
   }
+  logger.debug(`Have not yet seen block at height: ${height}, will transform`)
 
   const transformed = await transform(extracted, height)
+
+  logger.debug(
+    `Transformed block at height: ${height}, result: ${JSON.stringify(transformed, undefined, 2)}, will load`)
+
   await load(esService, transformed)
+
+  logger.debug(`Loaded block at height: ${height}`)
 
   return height
 }
@@ -113,7 +123,11 @@ export async function load(esService: ElasticSearchService, trans: ITransformedB
     bulkBody.push(trade)
   }))
 
-  await esService.bulk({ body: bulkBody })
+  const res: any = await esService.bulk({ body: bulkBody, refresh: 'wait_for' })
+
+  if (res.errors) {
+    throw new Error(`Error loading block ${trans.block.height}, message ${JSON.stringify(res, undefined, 2)}`)
+  }
 }
 
 const transformTx = (result: ITransformedBlock, blockCache: ITransformCache) =>
