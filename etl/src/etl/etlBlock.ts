@@ -123,7 +123,7 @@ export async function load(esService: ElasticSearchService, trans: ITransformedB
     bulkBody.push(trade)
   }))
 
-  const res: any = await esService.bulk({ body: bulkBody })
+  const res: any = await esService.bulk({ body: bulkBody, refresh: 'wait_for' })
 
   if (res.errors) {
     throw new Error(`Error loading block ${trans.block.height}, message ${JSON.stringify(res, undefined, 2)}`)

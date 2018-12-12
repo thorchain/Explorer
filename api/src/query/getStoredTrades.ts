@@ -15,6 +15,17 @@ export async function getStoredTrades (
           },
         },
       },
+      size: size * 10,
+      sort: [
+        {
+          height: {
+            order: 'desc',
+          },
+          index: {
+            order: 'desc',
+          },
+        },
+      ],
     }, index: 'limit-orders', type: 'type' })
     const orderIds = limOrds.hits.hits.map(hit => hit._source.order_id)
     bool = {
