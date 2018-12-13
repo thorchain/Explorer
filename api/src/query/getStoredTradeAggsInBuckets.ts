@@ -1,15 +1,12 @@
 import { ElasticSearchService } from '../services/ElasticSearch'
 
-// tslint:disable-next-line:no-empty-interface
-interface ITodo {} // TODO
-
 // tslint:disable:object-literal-sort-keys
 // example: getStoredTradesAsBuckets(esService, 'XMR', 'RUNE', '2018-11-15', '2018-11-17', 'hour')
 export async function getStoredTradesAsBuckets(
   esService: ElasticSearchService, amountDenom: string, priceDenom: string, from: string, to: string, interval: string,
-): Promise<ITodo> {
-  const result =
-    await esService.client.search<ITodo>({ body: {
+): Promise<ITradeAggsInBuckets> {
+  const result = await esService.client.search({
+    body: {
         size: 0,
         aggs: {
           singleDenom: {
@@ -106,6 +103,89 @@ export async function getStoredTradesAsBuckets(
         },
       },
       index: 'trades', type: 'type',
-    })
+    }) as ITradeAggsInBuckets
   return result
+}
+
+export interface ITradeAggsInBuckets {
+  took: number,
+  timed_out: boolean,
+  '_shards': {
+    'total': number,
+    'successful': number,
+    'skipped': number,
+    'failed': number,
+  },
+  'hits': {
+    'total': number,
+    'max_score': number,
+    'hits': [],
+  },
+  'aggregations': {
+    'singleDenom': {
+      'meta': {},
+      'doc_count': number,
+      'buckets': {
+        'buckets': Array<{
+          'key_as_string': string,
+          'key': number,
+          'doc_count': number,
+          'amount': {
+            'value': number,
+          },
+          'high': {
+            'value': number | null,
+          },
+          'low': {
+            'value': number | null,
+          },
+          'avg': {
+            'value': number | null,
+          },
+          'close': {
+            'hits': {
+              'total': number,
+              'max_score': number,
+              'hits': Array<{
+                '_index': 'trades',
+                '_type': 'type',
+                '_id': string,
+                '_score': null,
+                '_source': {
+                  'price': {
+                    'amount': string,
+                  },
+                },
+                'sort': [
+                  number,
+                  number
+                  ],
+              }>,
+            },
+          },
+          'open': {
+            'hits': {
+              'total': number,
+              'max_score': number,
+              'hits': Array<{
+                '_index': 'trades',
+                '_type': 'type',
+                '_id': string,
+                '_score': null,
+                '_source': {
+                  'price': {
+                    'amount': string,
+                  },
+                },
+                'sort': [
+                  number,
+                  number
+                  ],
+              }>,
+            },
+          },
+        }>,
+      },
+    },
+  }
 }

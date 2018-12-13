@@ -2,6 +2,7 @@ import * as express from 'express'
 import * as moment from 'moment'
 import * as request from 'request'
 import { env } from './helpers/env'
+import { tokens } from './helpers/tokens'
 import { getAllMetrics } from './metrics/getAllMetrics'
 import { getExchangePair } from './metrics/getExchangePair'
 import { getExchangeTrades } from './metrics/getExchangeTrades'
@@ -104,13 +105,64 @@ app.get('/api/tradingview/config', (req, res) => {
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
     supports_group_request: false,
     supports_marks: false,
-    supports_search: false,
+    supports_search: true,
     supports_timescale_marks: false,
   })
 })
 
 app.get('/api/tradingview/history', async (req, res) => {
-  res.send(await getTradingViewBars(esService, req.params))
+  res.send(await getTradingViewBars(esService, req.query))
+})
+
+app.get('/api/tradingview/search', async (req, res) => {
+  const { query } = req.query
+
+  const results = Object.keys(tokens).map((key) => tokens[key]).filter((token) => {
+    if (!query || query === '') {
+      return true
+    }
+
+    const tokenData = tokens[token.denom]
+    const tokenName = tokenData ? tokenData.name.toUpperCase() : ''
+    const searchTerm = query.toUpperCase()
+
+    return token.denom.includes(searchTerm) || tokenName.includes(searchTerm)
+  }).map((token) => ({
+    'symbol': token.denom,
+    'full_name': token.name,
+    'description': `${token.name}`,
+    'exchange': 'ASGARDEX',
+    'ticker': token.denom,
+    'type': 'crypto',
+  }))
+
+  res.send(results)
+})
+
+app.get('/api/tradingview/symbols', async (req, res) => {
+  const { symbol } = req.query
+
+  const token = tokens[symbol]
+
+  if (!token) {
+    res.sendStatus(404)
+    return
+  }
+
+  res.send({
+    'symbol': token.denom,
+    'full_name': token.name,
+    'description': `${token.name}`,
+    'exchange': 'ASGARDEX',
+    'listed_exchange': 'ASGARDEX',
+    'ticker': token.denom,
+    'type': 'crypto',
+    'session': '24x7',
+    'minmov': 1,
+    'pricescale': 10000,
+    'has_intraday': true,
+    'intraday_multipliers': ['1']
+  })
 })
 
 app.get('/api/tradingview/time', (req, res) => {
