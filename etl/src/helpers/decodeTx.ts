@@ -16,9 +16,13 @@ export function decodeTx(encodedTx: string): Promise<string> {
     client.on('end', () => {
       // logger.debug('thorchaindebug tx-decoding-server: disconnected')
     })
-    client.on('error', (err) => {
-      logger.error('thorchaindebug tx-decoding-server: error:', err)
-      reject(err)
+    client.on('error', (err: any) => {
+      if (err.code === 'EAGAIN') {
+        resolve(decodeTx(encodedTx))
+      } else {
+        logger.error('thorchaindebug tx-decoding-server: error:', err)
+        reject(err)
+      }
     })
   })
 }

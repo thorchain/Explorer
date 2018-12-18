@@ -94,13 +94,23 @@ server {
     proxy_redirect off;
   }
 
+  location /thorchaind-rpc/ {
+    include helpers/enableCors.nginx.conf;
+
+    proxy_set_header host $host;
+    proxy_set_header X-real-ip $remote_addr;
+    proxy_set_header X-forward-for $proxy_add_x_forwarded_for;
+    proxy_pass http://{{NODE}}/; # trailing slash here is important to strip the `/thorchaind-rpc` prefix
+    proxy_redirect off;
+  }
+
   location /thorchaind-rpc {
     include helpers/enableCors.nginx.conf;
 
     proxy_set_header host $host;
     proxy_set_header X-real-ip $remote_addr;
     proxy_set_header X-forward-for $proxy_add_x_forwarded_for;
-    proxy_pass {{NODE}}; # trailing slash here is important to strip the `/thorchaind-rpc` prefix
+    proxy_pass http://{{NODE}}/; # trailing slash here is important to strip the `/thorchaind-rpc` prefix
     proxy_redirect off;
   }
 }
